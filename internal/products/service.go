@@ -8,4 +8,5 @@ import (
 type ProductService interface {
 	Create(input json.RawMessage) *errors.CustomError
 	Update(id int, input json.RawMessage) *errors.CustomError
+	Delete(id int) *errors.CustomError
 }

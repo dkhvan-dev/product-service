@@ -131,3 +131,16 @@ func exists(id int) bool {
 	database.DB.QueryRow("select exists(select 1 from lenses where id = $1)", id).Scan(&entityExists)
 	return entityExists
 }
+
+func (s *LensStore) Delete(id int) *errors.CustomError {
+	return database.StartTransaction(func(tx *sqlx.Tx) *errors.CustomError {
+		query := "update lenses set updated_at = now(), is_deleted = true, deleted_at = now() where id = $1"
+
+		if _, err := tx.Exec(query, id); err != nil {
+			config.Logger.Error("Failed delete lens", zap.String("db", err.Error()))
+			return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+		}
+
+		return nil
+	})
+}

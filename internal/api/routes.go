@@ -17,4 +17,5 @@ func addProductRoutes(r *gin.RouterGroup, a *API) {
 	group := r.Group("/products")
 	group.POST("", a.CreateProductHandler)
 	group.PUT("/:id", a.UpdateProductHandler)
+	group.DELETE("/:id", a.DeleteProductHandler)
 }
