@@ -1,3 +1,7 @@
 {
-  "PRODUCT_NOT_FOUND": "Product not found"
+  "INVALID_INPUT_BODY": "Invalid request input body",
+  "LENS_MODEL_NOT_FOUND": "Lens model not found",
+  "LENS_MODEL_ALREADY_EXISTS": "Lens model already exists",
+  "LENS_NOT_FOUND": "Lens not found",
+  "PRODUCT_MISSING_TYPE": "Product type is missing"
 }

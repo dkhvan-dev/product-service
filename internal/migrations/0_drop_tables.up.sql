@@ -1,0 +1,1 @@
+truncate schema_migrations;

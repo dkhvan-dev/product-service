@@ -1,3 +1,7 @@
 {
-  "PRODUCT_NOT_FOUND": "Өнім табылмады"
+  "INVALID_INPUT_BODY": "Сұрау денесі қате",
+  "LENS_MODEL_NOT_FOUND": "Линза моделі табылмады",
+  "LENS_MODEL_ALREADY_EXISTS": "Линза моделі қазірдің өзінде бар",
+  "LENS_NOT_FOUND": "Линза табылмады",
+  "PRODUCT_MISSING_TYPE": "Тауар түрі көрсетілмеген"
 }

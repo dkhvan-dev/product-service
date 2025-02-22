@@ -1,0 +1,1 @@
+drop table if exists lenses_price_history;

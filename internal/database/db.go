@@ -4,102 +4,128 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/dkhvan-dev/web-commons/config"
+	customErrors "github.com/dkhvan-dev/web-commons/errors"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+	"go.uber.org/zap"
+	"net/http"
 	"os"
 )
 
-var DB *pgxpool.Pool
+var DB *sqlx.DB
 
-func InitDB() {
-	ctx := context.Background()
-	conn, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
+func InitDB() error {
+	db, err := sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
 
 	if err != nil {
-		panic(err) // todo: заменить на handler errors
+		config.Logger.Error(err.Error())
+		return err
 	}
-
-	defer conn.Close()
-
-	if err := conn.Ping(ctx); err != nil {
-		panic(err) // todo: заменить на handler errors
-	}
-
-	DB = conn
-	migrateSql()
-}
-
-func migrateSql() {
-	migrationsPath := "file://internal/migrations"
-
-	db, err := sql.Open("pgx", os.Getenv("DATABASE_URL"))
-	if err != nil {
-		panic(err) // todo: заменить на handler errors
-	}
-
-	defer db.Close()
 
 	if err := db.Ping(); err != nil {
-		panic(err) // todo: заменить на handler errors
+		config.Logger.Error(err.Error())
+		return err
+	}
+
+	DB = db
+	if err := migrateSql(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func migrateSql() error {
+	migrationsPath := "file://internal/migrations"
+	driver, err := postgres.WithInstance(DB.DB, &postgres.Config{})
+
+	if err != nil {
+		config.Logger.Error(err.Error())
+		return err
 	}
 
 	dbName := os.Getenv("DATABASE_NAME")
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	m, err := migrate.NewWithDatabaseInstance(migrationsPath, dbName, driver)
+
 	if err != nil {
-		panic(err) // todo: заменить на handler errors
+		config.Logger.Error(err.Error())
+		return err
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(migrationsPath, dbName, driver)
-	if err != nil {
-		panic(err) // todo: заменить на handler errors
+	ver, dirty, err := m.Version()
+	if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
+		config.Logger.Error(err.Error())
+		return err
+	}
+
+	if dirty {
+		if err := m.Force(int(ver) - 1); err != nil {
+			config.Logger.Error(err.Error())
+			return err
+		}
+
+		if err := m.Down(); err != nil {
+			config.Logger.Error("Failed to rollback dirty migration: " + err.Error())
+			return err
+		}
 	}
 
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		panic(err) // todo: заменить на handler errors
+		config.Logger.Error(err.Error())
+		return err
 	}
+
+	return nil
 }
 
-func StartTransaction(txFunc func(*pgx.Tx) error) error {
-	ctx := context.Background()
-	tx, err := DB.Begin(ctx)
+func StartTransaction(txFunc func(tx *sqlx.Tx) *customErrors.CustomError) *customErrors.CustomError {
+	tx, err := DB.Beginx()
 	if err != nil {
-		panic(err) // todo: заменить на handler errors
+		config.Logger.Error(err.Error())
+		return customErrors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+	}
+
+	var txErr *customErrors.CustomError
+	defer func() {
+		if p := recover(); p != nil {
+			tx.Rollback()
+			panic(p)
+		} else if txErr != nil {
+			tx.Rollback()
+		} else {
+			if commitErr := tx.Commit(); commitErr != nil {
+				config.Logger.Error("Failed to commit transaction", zap.Error(commitErr))
+			}
+		}
+	}()
+
+	txErr = txFunc(tx)
+	return txErr
+}
+
+func StartReadTransaction(txFunc func(tx *sqlx.Tx) *customErrors.CustomError) *customErrors.CustomError {
+	ctx := context.Background()
+	tx, err := DB.BeginTxx(ctx, &sql.TxOptions{ReadOnly: true})
+
+	if err != nil {
+		config.Logger.Error(err.Error())
+		return customErrors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
 	}
 
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback(ctx)
+			tx.Rollback()
 			panic(p)
 		} else if err != nil {
-			tx.Rollback(ctx)
+			tx.Rollback()
 		} else {
-			err = tx.Commit(ctx)
+			err = tx.Commit()
 		}
 	}()
 
-	return txFunc(&tx)
-}
-
-func StartReadTransaction(txFunc func(*pgx.Tx) error) error {
-	ctx := context.Background()
-	tx, err := DB.BeginTx(ctx, pgx.TxOptions{AccessMode: pgx.ReadOnly})
-	if err != nil {
-		panic(err) // todo: заменить на handler errors
-	}
-
-	defer func() {
-		if p := recover(); p != nil {
-			tx.Rollback(ctx)
-			panic(p)
-		} else if err != nil {
-			tx.Rollback(ctx)
-		} else {
-			err = tx.Commit(ctx)
-		}
-	}()
-
-	return txFunc(&tx)
+	return txFunc(tx)
 }

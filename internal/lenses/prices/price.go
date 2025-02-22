@@ -2,9 +2,8 @@ package prices
 
 import "time"
 
-type ActualPriceEntity struct {
+type ActualLensPriceEntity struct {
 	Id        int       `json:"id" db:"id"`
 	CreatedAt time.Time `json:"createdAt" db:"created_at"`
-	Value     int       `json:"value" db:"value"`
-	ProductId int       `db:"product_id"`
+	Price     float64   `json:"price" db:"price"`
 }
