@@ -7,6 +7,8 @@ import (
 	"github.com/dkhvan-dev/web-commons/errors"
 )
 
+var ProductStoreFactory *StoreFactory
+
 type StoreFactory struct {
 	storeMap map[string]products.ProductService
 }
@@ -25,9 +27,9 @@ func (s *StoreFactory) Get(productType string) (products.ProductService, *errors
 	return store, nil
 }
 
-func Init() *StoreFactory {
+func InitStoreFactory() {
 	factory := &StoreFactory{storeMap: make(map[string]products.ProductService)}
 	factory.Register("LENSES", &service.LensStore{})
 
-	return factory
+	ProductStoreFactory = factory
 }

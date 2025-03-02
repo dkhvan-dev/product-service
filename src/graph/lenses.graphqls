@@ -1,0 +1,47 @@
+# ====================================================
+# =                      TYPES                       =
+# ====================================================
+"Линзы"
+type Lens implements ProductInterface {
+    "Идентификатор пар линз"
+    id: Int!
+
+    "Дата создания линз"
+    createdAt: Time!
+
+    "Автор добавления линз"
+    createdBy: Int!
+
+    "Название линз"
+    name: String!
+
+    "Описание линз"
+    description: String
+
+    "Модель линз"
+    model: LensModel!
+
+    "Бренд линз"
+    brand: String!
+
+    "Актуальная цена линз"
+    actualPrice: LensPriceHistory!
+
+    "Цвет линз"
+    color: String!
+
+    "Оптическая сила линз"
+    opticalPower: Float!
+
+    "Диаметр линз"
+    diameter: Float!
+
+    "Радиус кривизны линз"
+    curvatureRadius: Float!
+
+    "Доступны линзы?"
+    isAvailable: Boolean!
+
+    "Доступное количество пар линз"
+    quantity: Int!
+}

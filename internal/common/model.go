@@ -1,6 +1,8 @@
 package common
 
-import "time"
+import (
+	"time"
+)
 
 type AuditEntity struct {
 	Id        int        `json:"id" db:"id"`
@@ -9,4 +11,8 @@ type AuditEntity struct {
 	UpdatedAt *time.Time `json:"updatedAt" db:"updated_at"`
 	IsDeleted bool       `json:"isDeleted" db:"is_deleted"`
 	DeletedAt *time.Time `json:"deletedAt" db:"deleted_at"`
+}
+
+type TableNameInterface interface {
+	TableName() string
 }

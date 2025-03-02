@@ -1,5 +1,6 @@
 {
   "INVALID_INPUT_BODY": "Сұрау денесі қате",
+  "INVALID_PAGINATION_PARAMETERS": "Пагинация параметрлері дұрыс емес",
   "LENS_MODEL_NOT_FOUND": "Линза моделі табылмады",
   "LENS_MODEL_ALREADY_EXISTS": "Линза моделі қазірдің өзінде бар",
   "LENS_NOT_FOUND": "Линза табылмады",

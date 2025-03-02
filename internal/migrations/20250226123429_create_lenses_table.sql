@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 create table if not exists lenses(
     id bigserial primary key not null,
     created_at timestamp with time zone default now() not null,
@@ -38,3 +40,9 @@ comment on column lenses.deleted_at is 'Дата удаления';
 alter table if exists lenses_price_history
     add constraint fk_lenses_price_history_to_lenses
         foreign key (lens_id) references lenses(id) on delete cascade;
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+select 'down SQL query';
+-- +goose StatementEnd

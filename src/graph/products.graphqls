@@ -1,0 +1,33 @@
+type Query {
+    products(pageable: PageInput!, type: ProductType!): ProductPage!
+}
+
+# ====================================================
+# =                      TYPES                       =
+# ====================================================
+type ProductPage {
+    content: [ProductInterface!]!
+    totalElements: Int!
+}
+
+interface ProductInterface {
+    "Идентификатор"
+    id: Int!
+
+    "Дата создания товара"
+    createdAt: Time!
+
+    "Автор добавления товара"
+    createdBy: Int!
+
+    "Название товара"
+    name: String!
+
+    "Описание товара"
+    description: String
+}
+
+enum ProductType {
+    "Линзы"
+    LENSES
+}

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/dkhvan-dev/product-service/internal/factory"
 	"github.com/dkhvan-dev/product-service/internal/products"
 	"github.com/dkhvan-dev/web-commons/errors"
 	"github.com/gin-gonic/gin"
@@ -21,7 +22,7 @@ func (a *API) CreateProductHandler(ctx *gin.Context) {
 		return
 	}
 
-	productStore, factoryErr := a.storeFactory.Get(request.Type)
+	productStore, factoryErr := factory.ProductStoreFactory.Get(request.Type)
 	if factoryErr != nil {
 		ctx.Set("error", factoryErr)
 		return
@@ -48,7 +49,7 @@ func (a *API) UpdateProductHandler(ctx *gin.Context) {
 		return
 	}
 
-	productStore, factoryErr := a.storeFactory.Get(request.Type)
+	productStore, factoryErr := factory.ProductStoreFactory.Get(request.Type)
 	if factoryErr != nil {
 		ctx.Set("error", factoryErr)
 		return
@@ -82,7 +83,7 @@ func (a *API) DeleteProductHandler(ctx *gin.Context) {
 		return
 	}
 
-	productStore, factoryErr := a.storeFactory.Get(productType)
+	productStore, factoryErr := factory.ProductStoreFactory.Get(productType)
 	if factoryErr != nil {
 		ctx.Set("error", factoryErr)
 		return

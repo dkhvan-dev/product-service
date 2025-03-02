@@ -17,6 +17,7 @@ func CreateActualPrice(tx *sqlx.Tx, price float64, lensId int) (*int, *errors.Cu
 
 	var actualPriceId int
 	err := tx.QueryRowx(query, price, lensId).Scan(&actualPriceId)
+	config.QueryLogger(query)
 
 	if err != nil {
 		config.Logger.Error("Failed create actual lens price", zap.String("db", err.Error()))

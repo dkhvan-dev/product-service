@@ -1,5 +1,6 @@
 {
   "INVALID_INPUT_BODY": "Неверное тело запроса",
+  "INVALID_PAGINATION_PARAMETERS": "Неверные параметры пагинации",
   "LENS_MODEL_NOT_FOUND": "Линза моделі табылмады",
   "LENS_MODEL_ALREADY_EXISTS": "Модель линз уже существует",
   "LENS_NOT_FOUND": "Линза не найдена",

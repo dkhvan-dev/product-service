@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 create table if not exists lenses_models(
     id bigserial primary key not null,
     created_at timestamp with time zone default now() not null,
@@ -18,3 +20,9 @@ comment on column lenses_models.name is 'Наименование';
 comment on column lenses_models.is_available is 'Доступна?';
 comment on column lenses_models.is_deleted is 'Удалена?';
 comment on column lenses_models.deleted_at is 'Дата удаления';
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+select 'down SQL query';
+-- +goose StatementEnd

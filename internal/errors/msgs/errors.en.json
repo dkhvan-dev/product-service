@@ -1,5 +1,6 @@
 {
   "INVALID_INPUT_BODY": "Invalid request input body",
+  "INVALID_PAGINATION_PARAMETERS": "Invalid pagination parameters",
   "LENS_MODEL_NOT_FOUND": "Lens model not found",
   "LENS_MODEL_ALREADY_EXISTS": "Lens model already exists",
   "LENS_NOT_FOUND": "Lens not found",
