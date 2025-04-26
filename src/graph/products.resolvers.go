@@ -6,23 +6,44 @@ package graph
 
 import (
 	"context"
-	"github.com/dkhvan-dev/product-service/internal/factory"
-	"github.com/dkhvan-dev/product-service/src/utils"
 
+	"github.com/dkhvan-dev/product-service/internal/factory"
+	"github.com/dkhvan-dev/product-service/internal/products"
 	"github.com/dkhvan-dev/product-service/src/graph/model"
+	"github.com/dkhvan-dev/product-service/src/utils"
 )
 
 // Products is the resolver for the products field.
-func (r *queryResolver) Products(ctx context.Context, pageable model.PageInput, productType model.ProductType) (*model.ProductPage, error) {
+func (r *queryResolver) Products(ctx context.Context, pageable model.PageInput, types []model.ProductType, search *model.ProductSearchInput) (*model.ProductPage, error) {
 	utils.SetDefaults(&pageable)
-	store, err := factory.ProductStoreFactory.Get(productType.String())
+	var response []model.ProductUnion
+	for _, t := range types {
+		store, err := factory.ProductStoreFactory.Get(t.String())
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := store.(products.ProductService).FindAll(pageable, utils.SelectedFields(ctx), search)
+		if err != nil {
+			return nil, err
+		}
+
+		response = append(response, result.Content...)
+	}
+
+	return &model.ProductPage{Content: response, TotalElements: len(response)}, nil
+}
+
+// ProductBestSellers is the resolver for the productBestSellers field.
+func (r *queryResolver) ProductBestSellers(ctx context.Context) ([]*model.ProductBestSeller, error) {
+	productStore := products.ProductStore{}
+	result, err := productStore.BestSellers(factory.ProductStoreFactory.BestSellersMap)
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := store.FindAll(pageable, utils.SelectedFields(ctx))
-	if err != nil {
-		return nil, err
+	if len(result) > 6 {
+		return result[:6], nil
 	}
 
 	return result, nil

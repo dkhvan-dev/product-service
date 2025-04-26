@@ -7,22 +7,14 @@ import (
 )
 
 func (a *API) AddRoutes(r *gin.Engine, srv *handler.Server) {
-	r.POST("/query", middlewares.GraphQLMiddleware(srv))
+	r.POST("/graphql", middlewares.GraphQLMiddleware(srv))
 
 	group := r.Group("/api/v1")
-	addLensModelRoutes(group, a)
 	addProductRoutes(group, a)
-}
-
-func addLensModelRoutes(r *gin.RouterGroup, a *API) {
-	group := r.Group("/lenses-models")
-	group.POST("", a.lensModelApi.SaveLensModelHandler)
 }
 
 func addProductRoutes(r *gin.RouterGroup, a *API) {
 	group := r.Group("/products")
-	group.POST("", a.CreateProductHandler)
-	group.PUT("/:id", a.UpdateProductHandler)
-	//group.GET("/", a.FindAllProductHandler)
+	group.POST("", a.UpsertProductHandler)
 	group.DELETE("/:id", a.DeleteProductHandler)
 }

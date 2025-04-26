@@ -1,13 +1,24 @@
 package prices
 
-import "time"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
+)
 
-type LensPriceHistoryView struct {
-	Id        int       `json:"id" db:"id"`
-	CreatedAt time.Time `json:"createdAt" db:"created_at"`
-	Price     float64   `json:"price" db:"price"`
+type LensPriceHistory struct {
+	Id        primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
+	CreatedAt time.Time            `json:"createdAt" bson:"createdAt"`
+	Price     primitive.Decimal128 `json:"price" bson:"price"`
+	LensId    primitive.ObjectID   `json:"lensId" bson:"lensId"`
 }
 
-func (l *LensPriceHistoryView) TableName() string {
+func New() LensPriceHistory {
+	return LensPriceHistory{
+		Id:        primitive.NewObjectID(),
+		CreatedAt: time.Now(),
+	}
+}
+
+func (l *LensPriceHistory) TableName() string {
 	return "lenses_price_history"
 }

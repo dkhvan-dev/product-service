@@ -12,21 +12,78 @@ import (
 type ProductInterface interface {
 	IsProductInterface()
 	// Идентификатор
-	GetID() int
+	GetID() string
 	// Дата создания товара
 	GetCreatedAt() time.Time
 	// Автор добавления товара
 	GetCreatedBy() int
 	// Название товара
 	GetName() string
+	// Категория товара
+	GetCategory() ProductType
 	// Описание товара
 	GetDescription() *string
+	// Актуальная цена
+	GetActualPrice() string
 }
+
+type ProductUnion interface {
+	IsProductUnion()
+}
+
+// Линзы
+type Fake struct {
+	// Идентификатор пар линз
+	ID string `json:"id"`
+	// Дата создания товара
+	CreatedAt time.Time `json:"createdAt"`
+	// Автор добавления товара
+	CreatedBy int `json:"createdBy"`
+	// Название товара
+	Name string `json:"name"`
+	// Описание товара
+	Description *string `json:"description,omitempty"`
+	// Категория товара
+	Category ProductType `json:"category"`
+	// Актуальная цена
+	ActualPrice string `json:"actualPrice"`
+	// Доустпное количество
+	Quantity int `json:"quantity"`
+	// Количество продаж фейк
+	SalesQuantity int `json:"salesQuantity"`
+}
+
+func (Fake) IsProductInterface() {}
+
+// Идентификатор
+func (this Fake) GetID() string { return this.ID }
+
+// Дата создания товара
+func (this Fake) GetCreatedAt() time.Time { return this.CreatedAt }
+
+// Автор добавления товара
+func (this Fake) GetCreatedBy() int { return this.CreatedBy }
+
+// Название товара
+func (this Fake) GetName() string { return this.Name }
+
+// Категория товара
+func (this Fake) GetCategory() ProductType { return this.Category }
+
+// Описание товара
+func (this Fake) GetDescription() *string { return this.Description }
+
+// Актуальная цена
+func (this Fake) GetActualPrice() string { return this.ActualPrice }
+
+func (Fake) IsProductUnion() {}
 
 // Линзы
 type Lens struct {
 	// Идентификатор пар линз
-	ID int `json:"id"`
+	ID string `json:"id"`
+	// Категория товара
+	Category ProductType `json:"category"`
 	// Дата создания линз
 	CreatedAt time.Time `json:"createdAt"`
 	// Автор добавления линз
@@ -35,30 +92,38 @@ type Lens struct {
 	Name string `json:"name"`
 	// Описание линз
 	Description *string `json:"description,omitempty"`
-	// Модель линз
-	Model *LensModel `json:"model"`
+	// Цвет линз
+	Color string `json:"color"`
 	// Бренд линз
 	Brand string `json:"brand"`
 	// Актуальная цена линз
-	ActualPrice *LensPriceHistory `json:"actualPrice"`
-	// Цвет линз
-	Color string `json:"color"`
-	// Оптическая сила линз
-	OpticalPower float64 `json:"opticalPower"`
+	ActualPrice string `json:"actualPrice"`
+	// Минимальная оптическая сила
+	MinOpticalPower string `json:"minOpticalPower"`
+	// Минимальная оптическая сила
+	MaxOpticalPower string `json:"maxOpticalPower"`
+	// Шаг оптической силы
+	OpticalPowerStep string `json:"opticalPowerStep"`
+	// Имеются нулевки?
+	HasZeroOpticalPower bool `json:"hasZeroOpticalPower"`
 	// Диаметр линз
-	Diameter float64 `json:"diameter"`
+	Diameter string `json:"diameter"`
 	// Радиус кривизны линз
-	CurvatureRadius float64 `json:"curvatureRadius"`
-	// Доступны линзы?
-	IsAvailable bool `json:"isAvailable"`
+	CurvatureRadius string `json:"curvatureRadius"`
 	// Доступное количество пар линз
 	Quantity int `json:"quantity"`
+	// Количество продаж
+	SalesQuantity int `json:"salesQuantity"`
+	// Доступны линзы?
+	IsAvailable bool `json:"isAvailable"`
+	// Удалена линза?
+	IsDeleted bool `json:"isDeleted"`
 }
 
 func (Lens) IsProductInterface() {}
 
 // Идентификатор
-func (this Lens) GetID() int { return this.ID }
+func (this Lens) GetID() string { return this.ID }
 
 // Дата создания товара
 func (this Lens) GetCreatedAt() time.Time { return this.CreatedAt }
@@ -69,31 +134,34 @@ func (this Lens) GetCreatedBy() int { return this.CreatedBy }
 // Название товара
 func (this Lens) GetName() string { return this.Name }
 
+// Категория товара
+func (this Lens) GetCategory() ProductType { return this.Category }
+
 // Описание товара
 func (this Lens) GetDescription() *string { return this.Description }
 
-// Модель линз
-type LensModel struct {
-	// Идентификатор модели линз
-	ID int `json:"id"`
-	// Дата добавления модели линз
-	CreatedAt time.Time `json:"createdAt"`
-	// Автор добавления модели линз
-	CreatedBy int `json:"createdBy"`
-	// Название модели линз
-	Name string `json:"name"`
-	// Доступна модель линз?
-	IsAvailable bool `json:"isAvailable"`
-}
+// Актуальная цена
+func (this Lens) GetActualPrice() string { return this.ActualPrice }
 
-// История цен линз
-type LensPriceHistory struct {
-	// Идентификатор цены линз
-	ID int `json:"id"`
-	// Дата создания цены линз
-	CreatedAt time.Time `json:"createdAt"`
-	// Цена
-	Price float64 `json:"price"`
+func (Lens) IsProductUnion() {}
+
+type LensSearchInput struct {
+	// Цвет линз
+	Color []string `json:"color,omitempty"`
+	// Оптическая сила
+	OpticalPower *string `json:"opticalPower,omitempty"`
+	// Имеются нулевки?
+	HasZeroOpticalPower *bool `json:"hasZeroOpticalPower,omitempty"`
+	// Бренд линз
+	Brand []*string `json:"brand"`
+	// Диаметр линз
+	Diameter *string `json:"diameter,omitempty"`
+	// Радиус кривизны линз
+	CurvatureRadius *string `json:"curvatureRadius,omitempty"`
+	// Линза удалена?
+	IsDeleted *bool `json:"isDeleted,omitempty"`
+	// Доступна линза?
+	IsAvailable *bool `json:"isAvailable,omitempty"`
 }
 
 type PageInput struct {
@@ -102,9 +170,54 @@ type PageInput struct {
 	Sort []*SortInput `json:"sort,omitempty"`
 }
 
+type Product struct {
+	// Название товара
+	Name string `json:"name"`
+	// Описание товара
+	Description *string `json:"description,omitempty"`
+	// Тип товара (категория)
+	Category ProductType `json:"category"`
+	// Цена
+	ActualPrice string `json:"actualPrice"`
+}
+
+type ProductBestSeller struct {
+	// Идентификатор
+	ID int `json:"id"`
+	// Тип товара (категория)
+	Type ProductType `json:"type"`
+	// Название товара
+	Name string `json:"name"`
+	// Описание товара
+	Description *string `json:"description,omitempty"`
+	// Цена
+	Price string `json:"price"`
+	// Доступное количество
+	Quantity int `json:"quantity"`
+	// Количество продаж
+	SalesQuantity int `json:"salesQuantity"`
+}
+
 type ProductPage struct {
-	Content       []ProductInterface `json:"content"`
-	TotalElements int                `json:"totalElements"`
+	Content       []ProductUnion `json:"content"`
+	TotalElements int            `json:"totalElements"`
+}
+
+type ProductSearchInput struct {
+	// Наименование товара
+	Name *string `json:"name,omitempty"`
+	// Начало ценового диапазона
+	PriceFrom *string `json:"priceFrom,omitempty"`
+	// Конец ценового диапазона
+	PriceTo *string `json:"priceTo,omitempty"`
+	// Доступное количество
+	Quantity *int `json:"quantity,omitempty"`
+	// Удален товар?
+	IsDeleted *bool `json:"isDeleted,omitempty"`
+	// Доступен товар?
+	IsAvailable *bool `json:"isAvailable,omitempty"`
+	// Фильтры линз
+	LensFilters *LensSearchInput `json:"lensFilters,omitempty"`
 }
 
 type Query struct {
@@ -120,15 +233,18 @@ type ProductType string
 const (
 	// Линзы
 	ProductTypeLenses ProductType = "LENSES"
+	// ФЕЙК
+	ProductTypeFake ProductType = "FAKE"
 )
 
 var AllProductType = []ProductType{
 	ProductTypeLenses,
+	ProductTypeFake,
 }
 
 func (e ProductType) IsValid() bool {
 	switch e {
-	case ProductTypeLenses:
+	case ProductTypeLenses, ProductTypeFake:
 		return true
 	}
 	return false

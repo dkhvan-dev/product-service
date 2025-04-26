@@ -2,6 +2,8 @@ package service
 
 import (
 	"encoding/json"
+	defaultErrors "errors"
+	"fmt"
 	"github.com/dkhvan-dev/product-service/internal/database"
 	"github.com/dkhvan-dev/product-service/internal/lenses"
 	"github.com/dkhvan-dev/product-service/internal/lenses/prices"
@@ -9,173 +11,114 @@ import (
 	"github.com/dkhvan-dev/product-service/src/utils"
 	"github.com/dkhvan-dev/web-commons/config"
 	"github.com/dkhvan-dev/web-commons/errors"
-	"github.com/jinzhu/copier"
-	"github.com/jmoiron/sqlx"
+	commonUtils "github.com/dkhvan-dev/web-commons/utils"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"net/http"
 	"slices"
-	"strings"
 )
 
 type LensStore struct {
+	collection *mongo.Collection
 }
 
-func (s *LensStore) Create(input json.RawMessage) *errors.CustomError {
-	var lensInput lenses.LensUpsert
-	if err := json.Unmarshal(input, &lensInput); err != nil {
-		return errors.BadRequestError("INVALID_INPUT_BODY", nil)
+func InitLensStore() *LensStore {
+	return &LensStore{
+		collection: database.DB.Collection("lenses"),
 	}
-
-	// TODO: refactor CreatedBy
-	return database.StartTransaction(func(tx *sqlx.Tx) *errors.CustomError {
-		lensInput.CreatedBy = -10
-
-		query := "select exists(select 1 from lenses_models where id = $1)"
-		var existsModel bool
-
-		tx.QueryRow(query, lensInput.ModelId).Scan(&existsModel)
-		config.QueryLogger(query)
-		if !existsModel {
-			config.Logger.Error("Lens models not found", zap.Int("model_id", lensInput.ModelId))
-			return errors.BadRequestError("LENS_MODEL_NOT_FOUND", nil)
-		}
-
-		query = `
-			insert into lenses (created_by, name, model_id, brand, description, 
-			                    color, optical_power, diameter, curvature_radius, quantity)
-			
-			values (:created_by, :name, :model_id, :brand, :description, :color, 
-			        :optical_power, :diameter, :curvature_radius, :quantity)
-			returning id
-		`
-
-		stmt, err := tx.PrepareNamed(query)
-		if err != nil {
-			config.Logger.Error("Failed prepare statement")
-			return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
-		}
-
-		var lensId int
-		config.QueryLogger(query)
-
-		if err := stmt.Get(&lensId, lensInput); err != nil {
-			config.Logger.Error("Failed create lens", zap.String("db", err.Error()))
-			return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
-		}
-
-		actualPriceId, createActualPriceErr := prices.CreateActualPrice(tx, lensInput.Price, lensId)
-		if createActualPriceErr != nil {
-			return createActualPriceErr
-		}
-
-		if updateErr := assignActualPrice(tx, *actualPriceId, lensId); updateErr != nil {
-			return updateErr
-		}
-
-		return nil
-	})
 }
 
-func (s *LensStore) Update(id int, input json.RawMessage) *errors.CustomError {
-	var lensInput lenses.LensUpsert
-	lensInput.Id = &id
+func (s *LensStore) Upsert(input json.RawMessage) *errors.CustomError {
+	lensInput := lenses.NewLens()
+	lensInput.CreatedBy = -10
 
 	if err := json.Unmarshal(input, &lensInput); err != nil {
 		return errors.BadRequestError("INVALID_INPUT_BODY", nil)
 	}
 
-	return database.StartTransaction(func(tx *sqlx.Tx) *errors.CustomError {
-		if !exists(id) {
-			config.Logger.Error("Lens not found", zap.Int("lens_id", id))
-			return errors.NotFoundError("LENS_NOT_FOUND", nil)
+	if cmsErr := utils.ValidateCmsValue(lensInput); cmsErr != nil {
+		return cmsErr
+	}
+
+	return database.StartMongoTransaction(func(sc mongo.SessionContext) *errors.CustomError {
+		if err := exists(sc, s.collection, lensInput); err != nil {
+			return err
 		}
 
-		var existsModel bool
-		existsModelQuery := "select exists(select 1 from lenses_models where id = $1)"
-		tx.QueryRow(existsModelQuery, lensInput.ModelId).Scan(&existsModel)
-		config.QueryLogger(existsModelQuery)
-
-		if !existsModel {
-			config.Logger.Error("Lens models not found", zap.Int("model_id", lensInput.ModelId))
-			return errors.BadRequestError("LENS_MODEL_NOT_FOUND", nil)
-		}
-
-		var queryBuilder strings.Builder
-		queryBuilder.WriteString("update lenses set")
-		queryBuilder.WriteString(`
-			updated_at = now(), name = :name, model_id = :model_id, brand = :brand, description = :description, 
-			color = :color, optical_power = :optical_power, diameter = :diameter, curvature_radius = :curvature_radius, 
-			quantity = :quantity
-		`)
-
-		var existsPrice bool
-		existingPriceQuery := "select exists(select 1 from lenses_price_history where lens_id = $1 and price = $2)"
-
-		tx.Get(&existsPrice, existingPriceQuery, id, lensInput.Price)
-		config.QueryLogger(existingPriceQuery)
-		if !existsPrice {
-			actualPriceId, createActualPriceErr := prices.CreateActualPrice(tx, lensInput.Price, id)
-			if createActualPriceErr != nil {
-				return createActualPriceErr
+		var entity lenses.LensEntity
+		if lensInput.Id != nil {
+			filter := bson.M{
+				"_id": lensInput.Id,
 			}
 
-			lensInput.ActualPriceId = actualPriceId
-			queryBuilder.WriteString(", actual_price_id = :actual_price_id")
+			if err := s.collection.FindOne(sc, filter).Decode(&entity); err != nil {
+				config.Logger.Error("Failed to find lens", zap.Any("lensId", lensInput.Id), zap.Error(err))
+				return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+			}
+
+			if _, err := s.collection.ReplaceOne(sc, bson.D{}, lensInput); err != nil {
+				config.Logger.Error("Failed to update lens", zap.Any("body", lensInput), zap.Error(err))
+				return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+			}
+		} else {
+			objId := primitive.NewObjectID()
+			lensInput.Id = &objId
+
+			if _, err := s.collection.InsertOne(sc, lensInput); err != nil {
+				config.Logger.Error("Failed to insert lens", zap.Any("body", lensInput), zap.Error(err))
+				return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+			}
 		}
 
-		queryBuilder.WriteString(" where id = :id")
-		config.QueryLogger(queryBuilder.String())
-		if _, err := tx.NamedExec(queryBuilder.String(), &lensInput); err != nil {
-			config.Logger.Error("Failed update lens", zap.String("db", err.Error()))
-			return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+		if entity.ActualPrice != lensInput.Price {
+			if err := prices.Create(sc, lensInput.Price, *lensInput.Id); err != nil {
+				return err
+			}
 		}
 
 		return nil
 	})
 }
 
-func assignActualPrice(tx *sqlx.Tx, actualPriceId, lensId int) *errors.CustomError {
-	query := "update lenses set actual_price_id = $1 where id = $2"
-	_, err := tx.Exec(query, actualPriceId, lensId)
-	config.QueryLogger(query)
+func (s *LensStore) FindAll(pageable model.PageInput, selectedFields []string, search *model.ProductSearchInput) (*model.ProductPage, *errors.CustomError) {
+	var lensArr []*model.Lens
+	var totalElements int64
 
-	if err != nil {
-		config.Logger.Error("Failed update actual lens price", zap.String("db", err.Error()))
-		return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
-	}
+	err := database.StartMongoTransaction(func(sc mongo.SessionContext) *errors.CustomError {
+		filter := buildFilter(search)
+		projection := buildProjection(selectedFields)
+		sort := buildSort(pageable.Sort)
+		opts := options.Find().
+			SetProjection(projection).
+			SetSkip(int64(pageable.Page * pageable.Size)).
+			SetLimit(int64(pageable.Size)).
+			SetSort(sort)
 
-	return nil
-}
-
-func exists(id int) bool {
-	var entityExists bool
-	query := "select exists(select 1 from lenses where id = $1)"
-	database.DB.QueryRow(query, id).Scan(&entityExists)
-	config.QueryLogger(query)
-
-	return entityExists
-}
-
-func (s *LensStore) FindAll(pageable model.PageInput, selectedFields []string) (*model.ProductPage, *errors.CustomError) {
-	var lensesContent []lenses.LensView
-	var totalElements int
-
-	err := database.StartReadTransaction(func(tx *sqlx.Tx) *errors.CustomError {
-		query := buildQuery(selectedFields, pageable)
-		selectErr := tx.Select(&lensesContent, query, pageable.Size, pageable.Page)
-		config.QueryLogger(query)
-
-		if selectErr != nil {
-			config.Logger.Error("Failed search lenses", zap.String("db", selectErr.Error()))
+		cursor, err := s.collection.Find(sc, filter, opts)
+		if err != nil {
+			config.Logger.Error("Failed to find lens models", zap.Error(err))
 			return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+		}
+
+		defer cursor.Close(sc)
+
+		for cursor.Next(sc) {
+			var doc bson.M
+			if err := cursor.Decode(&doc); err != nil {
+				config.Logger.Error("Failed to decode lens model", zap.Error(err))
+				return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+			}
+
+			lensArr = append(lensArr, mapToResponse(doc))
 		}
 
 		if slices.Contains(selectedFields, "totalElements") {
-			totalElementsQuery := "select count(id) from lenses where is_deleted is false"
-			config.QueryLogger(totalElementsQuery)
-
-			if err := tx.Get(&totalElements, totalElementsQuery); err != nil {
-				config.Logger.Error("Failed calculate count lenses", zap.String("db", err.Error()))
+			totalElements, err = s.collection.CountDocuments(sc, bson.D{})
+			if err != nil {
+				config.Logger.Error("Failed to accurate count lenses", zap.Error(err))
 				return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
 			}
 		}
@@ -187,36 +130,223 @@ func (s *LensStore) FindAll(pageable model.PageInput, selectedFields []string) (
 		return nil, err
 	}
 
-	contentResponse := make([]model.ProductInterface, len(lensesContent))
-	for i, lensView := range lensesContent {
-		var lens model.Lens
-		copier.Copy(&lens, &lensView)
-		contentResponse[i] = &lens
+	contentResponse := make([]model.ProductUnion, len(lensArr))
+	for i := range lensArr {
+		contentResponse[i] = lensArr[i]
 	}
 
-	return &model.ProductPage{Content: contentResponse, TotalElements: totalElements}, nil
+	return &model.ProductPage{Content: contentResponse, TotalElements: int(totalElements)}, nil
 }
 
-func buildQuery(selectedFields []string, pageable model.PageInput) string {
-	var query strings.Builder
-	query.WriteString(utils.GenerateSQL[lenses.LensView](selectedFields))
-	query.WriteString(" where lenses.is_deleted is false order by ")
-	query.WriteString(utils.ToSqlSort[lenses.LensView](pageable.Sort))
-	query.WriteString(" limit $1 offset $2")
+func buildSort(sortInputs []*model.SortInput) bson.D {
+	sort := bson.D{}
 
-	return query.String()
+	if len(sortInputs) == 0 {
+		sort = append(sort, bson.E{Key: "id", Value: 1})
+	}
+
+	for _, s := range sortInputs {
+		if s == nil {
+			continue
+		}
+
+		direction := 1
+		if s.Direction == model.SortDirectionDesc {
+			direction = -1
+		}
+
+		sort = append(sort, bson.E{Key: s.Field, Value: direction})
+	}
+
+	return sort
 }
 
-func (s *LensStore) Delete(id int) *errors.CustomError {
-	return database.StartTransaction(func(tx *sqlx.Tx) *errors.CustomError {
-		query := "update lenses set updated_at = now(), is_deleted = true, deleted_at = now() where id = $1"
-		config.QueryLogger(query)
+func buildFilter(search *model.ProductSearchInput) bson.M {
+	filter := bson.M{}
+	filter["category"] = "LENSES"
 
-		if _, err := tx.Exec(query, id); err != nil {
-			config.Logger.Error("Failed delete lens", zap.String("db", err.Error()))
+	if search == nil {
+		return filter
+	}
+
+	buildCommonFilters(filter, search)
+
+	if search.LensFilters != nil {
+		lensFilters := search.LensFilters
+		if lensFilters.Color != nil && len(lensFilters.Color) != 0 {
+			filter["color"] = bson.M{"$in": lensFilters.Color}
+		}
+
+		if lensFilters.Brand != nil && len(lensFilters.Brand) != 0 {
+			filter["brand"] = bson.M{"$in": lensFilters.Brand}
+		}
+
+		if lensFilters.CurvatureRadius != nil {
+			filter["curvatureRadius"], _ = primitive.ParseDecimal128(*lensFilters.CurvatureRadius)
+		}
+
+		if lensFilters.Diameter != nil {
+			filter["diameter"], _ = primitive.ParseDecimal128(*lensFilters.Diameter)
+		}
+
+		if lensFilters.HasZeroOpticalPower != nil {
+			filter["hasZeroOpticalPower"] = *lensFilters.HasZeroOpticalPower
+		}
+
+		if lensFilters.OpticalPower != nil {
+			opticalPowerDecimal, err := primitive.ParseDecimal128(*lensFilters.OpticalPower)
+			if err == nil {
+				stepTolerance, _ := primitive.ParseDecimal128("0.000001")
+				expr := bson.M{
+					"$and": bson.A{
+						bson.M{"$lte": bson.A{opticalPowerDecimal, "$maxOpticalPower"}},
+						bson.M{"$gte": bson.A{opticalPowerDecimal, "$minOpticalPower"}},
+						bson.M{
+							"$lte": bson.A{
+								bson.M{"$abs": bson.M{
+									"$mod": bson.A{
+										bson.M{"$subtract": bson.A{opticalPowerDecimal, "$minOpticalPower"}},
+										"$opticalPowerStep",
+									},
+								}},
+								stepTolerance,
+							},
+						},
+					},
+				}
+				filter["$expr"] = expr
+			}
+		}
+	}
+
+	return filter
+}
+
+func buildCommonFilters(filter bson.M, search *model.ProductSearchInput) {
+	if search.IsDeleted != nil {
+		filter["isDeleted"] = *search.IsDeleted
+	}
+
+	if search.Name != nil {
+		filter["name"] = bson.M{
+			"$regex":   fmt.Sprintf(".*%s.*", *search.Name),
+			"$options": "i",
+		}
+	}
+
+	if search.IsAvailable != nil {
+		filter["isAvailable"] = *search.IsAvailable
+	}
+
+	if search.PriceFrom != nil || search.PriceTo != nil {
+		priceFilter := bson.M{}
+
+		if search.PriceFrom != nil {
+			priceFilter["$gte"], _ = primitive.ParseDecimal128(*search.PriceFrom)
+		}
+
+		if search.PriceTo != nil {
+			priceFilter["$lte"], _ = primitive.ParseDecimal128(*search.PriceTo)
+		}
+
+		filter["actualPrice"] = priceFilter
+	}
+
+	if search.Quantity != nil {
+		filter["quantity"] = *search.Quantity
+	}
+}
+
+func buildProjection(fields []string) bson.M {
+	projection := bson.M{}
+
+	for _, field := range fields {
+		projection[field] = 1
+	}
+
+	return projection
+}
+
+func mapToResponse(doc bson.M) *model.Lens {
+	return &model.Lens{
+		ID:                  utils.ToString(doc["_id"]),
+		Name:                *commonUtils.ToString(doc["name"]),
+		CreatedAt:           commonUtils.ToTime(doc["createdAt"]),
+		CreatedBy:           commonUtils.ToInt(doc["createdBy"]),
+		Color:               *commonUtils.ToString(doc["color"]),
+		Category:            model.ProductTypeLenses,
+		MinOpticalPower:     utils.ToString(doc["minOpticalPower"]),
+		MaxOpticalPower:     utils.ToString(doc["maxOpticalPower"]),
+		OpticalPowerStep:    utils.ToString(doc["opticalPowerStep"]),
+		Diameter:            utils.ToString(doc["diameter"]),
+		CurvatureRadius:     utils.ToString(doc["curvatureRadius"]),
+		HasZeroOpticalPower: commonUtils.ToBool(doc["hasZeroOpticalPower"]),
+		ActualPrice:         utils.ToString(doc["actualPrice"]),
+		Quantity:            commonUtils.ToInt(doc["quantity"]),
+		SalesQuantity:       commonUtils.ToInt(doc["salesQuantity"]),
+		IsAvailable:         commonUtils.ToBool(doc["isAvailable"]),
+		IsDeleted:           commonUtils.ToBool(doc["isDeleted"]),
+	}
+}
+
+func (s *LensStore) Delete(id primitive.ObjectID) *errors.CustomError {
+	return database.StartMongoTransaction(func(sc mongo.SessionContext) *errors.CustomError {
+		if err := existsById(sc, s.collection, id); err != nil {
+			return err
+		}
+
+		if _, err := s.collection.DeleteOne(sc, bson.M{"_id": id}); err != nil {
+			config.Logger.Error("Failed to delete lens", zap.Any("lensId", id), zap.Error(err))
 			return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+		}
+
+		if err := prices.DeleteByLensId(sc, id); err != nil {
+			return err
 		}
 
 		return nil
 	})
+}
+
+func exists(sc mongo.SessionContext, collection *mongo.Collection, lensInput lenses.LensUpsert) *errors.CustomError {
+	filter := bson.M{
+		"name":                lensInput.Name,
+		"color":               lensInput.Color,
+		"brand":               lensInput.Brand,
+		"minOpticalPower":     lensInput.MinOpticalPower,
+		"maxOpticalPower":     lensInput.MaxOpticalPower,
+		"opticalPowerStep":    lensInput.OpticalPowerStep,
+		"curvatureRadius":     lensInput.CurvatureRadius,
+		"diameter":            lensInput.Diameter,
+		"hasZeroOpticalPower": true,
+	}
+
+	if lensInput.Id != nil {
+		filter["_id"] = bson.M{"$ne": *lensInput.Id}
+	}
+
+	err := collection.FindOne(sc, filter).Err()
+	if err == nil {
+		config.Logger.Error("Lens already exists", zap.Any("req_body", filter))
+		return errors.BadRequestError("LENS_ALREADY_EXISTS", nil)
+	} else if !defaultErrors.Is(err, mongo.ErrNoDocuments) {
+		config.Logger.Error("Failed to find lens", zap.Any("body", filter), zap.Error(err))
+		return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+	}
+
+	return nil
+}
+
+func existsById(sc mongo.SessionContext, collection *mongo.Collection, id primitive.ObjectID) *errors.CustomError {
+	filter := bson.M{
+		"_id": id,
+	}
+
+	err := collection.FindOne(sc, filter).Err()
+	if err != nil && !defaultErrors.Is(err, mongo.ErrNoDocuments) {
+		config.Logger.Error("Failed to find lens", zap.Any("body", filter), zap.Error(err))
+		return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+	}
+
+	return nil
 }

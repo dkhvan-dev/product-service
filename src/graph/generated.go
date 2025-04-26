@@ -15,6 +15,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/99designs/gqlgen/plugin/federation/fedruntime"
 	"github.com/dkhvan-dev/product-service/src/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -47,35 +48,55 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
-	Lens struct {
-		ActualPrice     func(childComplexity int) int
-		Brand           func(childComplexity int) int
-		Color           func(childComplexity int) int
-		CreatedAt       func(childComplexity int) int
-		CreatedBy       func(childComplexity int) int
-		CurvatureRadius func(childComplexity int) int
-		Description     func(childComplexity int) int
-		Diameter        func(childComplexity int) int
-		ID              func(childComplexity int) int
-		IsAvailable     func(childComplexity int) int
-		Model           func(childComplexity int) int
-		Name            func(childComplexity int) int
-		OpticalPower    func(childComplexity int) int
-		Quantity        func(childComplexity int) int
+	Fake struct {
+		ActualPrice   func(childComplexity int) int
+		Category      func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
+		CreatedBy     func(childComplexity int) int
+		Description   func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Quantity      func(childComplexity int) int
+		SalesQuantity func(childComplexity int) int
 	}
 
-	LensModel struct {
-		CreatedAt   func(childComplexity int) int
-		CreatedBy   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		IsAvailable func(childComplexity int) int
+	Lens struct {
+		ActualPrice         func(childComplexity int) int
+		Brand               func(childComplexity int) int
+		Category            func(childComplexity int) int
+		Color               func(childComplexity int) int
+		CreatedAt           func(childComplexity int) int
+		CreatedBy           func(childComplexity int) int
+		CurvatureRadius     func(childComplexity int) int
+		Description         func(childComplexity int) int
+		Diameter            func(childComplexity int) int
+		HasZeroOpticalPower func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		IsAvailable         func(childComplexity int) int
+		IsDeleted           func(childComplexity int) int
+		MaxOpticalPower     func(childComplexity int) int
+		MinOpticalPower     func(childComplexity int) int
+		Name                func(childComplexity int) int
+		OpticalPowerStep    func(childComplexity int) int
+		Quantity            func(childComplexity int) int
+		SalesQuantity       func(childComplexity int) int
+	}
+
+	Product struct {
+		ActualPrice func(childComplexity int) int
+		Category    func(childComplexity int) int
+		Description func(childComplexity int) int
 		Name        func(childComplexity int) int
 	}
 
-	LensPriceHistory struct {
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Price     func(childComplexity int) int
+	ProductBestSeller struct {
+		Description   func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+		Price         func(childComplexity int) int
+		Quantity      func(childComplexity int) int
+		SalesQuantity func(childComplexity int) int
+		Type          func(childComplexity int) int
 	}
 
 	ProductPage struct {
@@ -84,12 +105,19 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Products func(childComplexity int, pageable model.PageInput, typeArg model.ProductType) int
+		ProductBestSellers func(childComplexity int) int
+		Products           func(childComplexity int, pageable model.PageInput, types []model.ProductType, search *model.ProductSearchInput) int
+		__resolve__service func(childComplexity int) int
+	}
+
+	_Service struct {
+		SDL func(childComplexity int) int
 	}
 }
 
 type QueryResolver interface {
-	Products(ctx context.Context, pageable model.PageInput, typeArg model.ProductType) (*model.ProductPage, error)
+	Products(ctx context.Context, pageable model.PageInput, types []model.ProductType, search *model.ProductSearchInput) (*model.ProductPage, error)
+	ProductBestSellers(ctx context.Context) ([]*model.ProductBestSeller, error)
 }
 
 type executableSchema struct {
@@ -111,6 +139,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Fake.actualPrice":
+		if e.complexity.Fake.ActualPrice == nil {
+			break
+		}
+
+		return e.complexity.Fake.ActualPrice(childComplexity), true
+
+	case "Fake.category":
+		if e.complexity.Fake.Category == nil {
+			break
+		}
+
+		return e.complexity.Fake.Category(childComplexity), true
+
+	case "Fake.createdAt":
+		if e.complexity.Fake.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Fake.CreatedAt(childComplexity), true
+
+	case "Fake.createdBy":
+		if e.complexity.Fake.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.Fake.CreatedBy(childComplexity), true
+
+	case "Fake.description":
+		if e.complexity.Fake.Description == nil {
+			break
+		}
+
+		return e.complexity.Fake.Description(childComplexity), true
+
+	case "Fake.id":
+		if e.complexity.Fake.ID == nil {
+			break
+		}
+
+		return e.complexity.Fake.ID(childComplexity), true
+
+	case "Fake.name":
+		if e.complexity.Fake.Name == nil {
+			break
+		}
+
+		return e.complexity.Fake.Name(childComplexity), true
+
+	case "Fake.quantity":
+		if e.complexity.Fake.Quantity == nil {
+			break
+		}
+
+		return e.complexity.Fake.Quantity(childComplexity), true
+
+	case "Fake.salesQuantity":
+		if e.complexity.Fake.SalesQuantity == nil {
+			break
+		}
+
+		return e.complexity.Fake.SalesQuantity(childComplexity), true
+
 	case "Lens.actualPrice":
 		if e.complexity.Lens.ActualPrice == nil {
 			break
@@ -124,6 +215,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Lens.Brand(childComplexity), true
+
+	case "Lens.category":
+		if e.complexity.Lens.Category == nil {
+			break
+		}
+
+		return e.complexity.Lens.Category(childComplexity), true
 
 	case "Lens.color":
 		if e.complexity.Lens.Color == nil {
@@ -167,6 +265,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Lens.Diameter(childComplexity), true
 
+	case "Lens.hasZeroOpticalPower":
+		if e.complexity.Lens.HasZeroOpticalPower == nil {
+			break
+		}
+
+		return e.complexity.Lens.HasZeroOpticalPower(childComplexity), true
+
 	case "Lens.id":
 		if e.complexity.Lens.ID == nil {
 			break
@@ -181,12 +286,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Lens.IsAvailable(childComplexity), true
 
-	case "Lens.model":
-		if e.complexity.Lens.Model == nil {
+	case "Lens.isDeleted":
+		if e.complexity.Lens.IsDeleted == nil {
 			break
 		}
 
-		return e.complexity.Lens.Model(childComplexity), true
+		return e.complexity.Lens.IsDeleted(childComplexity), true
+
+	case "Lens.maxOpticalPower":
+		if e.complexity.Lens.MaxOpticalPower == nil {
+			break
+		}
+
+		return e.complexity.Lens.MaxOpticalPower(childComplexity), true
+
+	case "Lens.minOpticalPower":
+		if e.complexity.Lens.MinOpticalPower == nil {
+			break
+		}
+
+		return e.complexity.Lens.MinOpticalPower(childComplexity), true
 
 	case "Lens.name":
 		if e.complexity.Lens.Name == nil {
@@ -195,12 +314,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Lens.Name(childComplexity), true
 
-	case "Lens.opticalPower":
-		if e.complexity.Lens.OpticalPower == nil {
+	case "Lens.opticalPowerStep":
+		if e.complexity.Lens.OpticalPowerStep == nil {
 			break
 		}
 
-		return e.complexity.Lens.OpticalPower(childComplexity), true
+		return e.complexity.Lens.OpticalPowerStep(childComplexity), true
 
 	case "Lens.quantity":
 		if e.complexity.Lens.Quantity == nil {
@@ -209,61 +328,89 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Lens.Quantity(childComplexity), true
 
-	case "LensModel.createdAt":
-		if e.complexity.LensModel.CreatedAt == nil {
+	case "Lens.salesQuantity":
+		if e.complexity.Lens.SalesQuantity == nil {
 			break
 		}
 
-		return e.complexity.LensModel.CreatedAt(childComplexity), true
+		return e.complexity.Lens.SalesQuantity(childComplexity), true
 
-	case "LensModel.createdBy":
-		if e.complexity.LensModel.CreatedBy == nil {
+	case "Product.actualPrice":
+		if e.complexity.Product.ActualPrice == nil {
 			break
 		}
 
-		return e.complexity.LensModel.CreatedBy(childComplexity), true
+		return e.complexity.Product.ActualPrice(childComplexity), true
 
-	case "LensModel.id":
-		if e.complexity.LensModel.ID == nil {
+	case "Product.category":
+		if e.complexity.Product.Category == nil {
 			break
 		}
 
-		return e.complexity.LensModel.ID(childComplexity), true
+		return e.complexity.Product.Category(childComplexity), true
 
-	case "LensModel.isAvailable":
-		if e.complexity.LensModel.IsAvailable == nil {
+	case "Product.description":
+		if e.complexity.Product.Description == nil {
 			break
 		}
 
-		return e.complexity.LensModel.IsAvailable(childComplexity), true
+		return e.complexity.Product.Description(childComplexity), true
 
-	case "LensModel.name":
-		if e.complexity.LensModel.Name == nil {
+	case "Product.name":
+		if e.complexity.Product.Name == nil {
 			break
 		}
 
-		return e.complexity.LensModel.Name(childComplexity), true
+		return e.complexity.Product.Name(childComplexity), true
 
-	case "LensPriceHistory.createdAt":
-		if e.complexity.LensPriceHistory.CreatedAt == nil {
+	case "ProductBestSeller.description":
+		if e.complexity.ProductBestSeller.Description == nil {
 			break
 		}
 
-		return e.complexity.LensPriceHistory.CreatedAt(childComplexity), true
+		return e.complexity.ProductBestSeller.Description(childComplexity), true
 
-	case "LensPriceHistory.id":
-		if e.complexity.LensPriceHistory.ID == nil {
+	case "ProductBestSeller.id":
+		if e.complexity.ProductBestSeller.ID == nil {
 			break
 		}
 
-		return e.complexity.LensPriceHistory.ID(childComplexity), true
+		return e.complexity.ProductBestSeller.ID(childComplexity), true
 
-	case "LensPriceHistory.price":
-		if e.complexity.LensPriceHistory.Price == nil {
+	case "ProductBestSeller.name":
+		if e.complexity.ProductBestSeller.Name == nil {
 			break
 		}
 
-		return e.complexity.LensPriceHistory.Price(childComplexity), true
+		return e.complexity.ProductBestSeller.Name(childComplexity), true
+
+	case "ProductBestSeller.price":
+		if e.complexity.ProductBestSeller.Price == nil {
+			break
+		}
+
+		return e.complexity.ProductBestSeller.Price(childComplexity), true
+
+	case "ProductBestSeller.quantity":
+		if e.complexity.ProductBestSeller.Quantity == nil {
+			break
+		}
+
+		return e.complexity.ProductBestSeller.Quantity(childComplexity), true
+
+	case "ProductBestSeller.salesQuantity":
+		if e.complexity.ProductBestSeller.SalesQuantity == nil {
+			break
+		}
+
+		return e.complexity.ProductBestSeller.SalesQuantity(childComplexity), true
+
+	case "ProductBestSeller.type":
+		if e.complexity.ProductBestSeller.Type == nil {
+			break
+		}
+
+		return e.complexity.ProductBestSeller.Type(childComplexity), true
 
 	case "ProductPage.content":
 		if e.complexity.ProductPage.Content == nil {
@@ -279,6 +426,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ProductPage.TotalElements(childComplexity), true
 
+	case "Query.productBestSellers":
+		if e.complexity.Query.ProductBestSellers == nil {
+			break
+		}
+
+		return e.complexity.Query.ProductBestSellers(childComplexity), true
+
 	case "Query.products":
 		if e.complexity.Query.Products == nil {
 			break
@@ -289,7 +443,21 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Products(childComplexity, args["pageable"].(model.PageInput), args["type"].(model.ProductType)), true
+		return e.complexity.Query.Products(childComplexity, args["pageable"].(model.PageInput), args["types"].([]model.ProductType), args["search"].(*model.ProductSearchInput)), true
+
+	case "Query._service":
+		if e.complexity.Query.__resolve__service == nil {
+			break
+		}
+
+		return e.complexity.Query.__resolve__service(childComplexity), true
+
+	case "_Service.sdl":
+		if e.complexity._Service.SDL == nil {
+			break
+		}
+
+		return e.complexity._Service.SDL(childComplexity), true
 
 	}
 	return 0, false
@@ -299,7 +467,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputLensSearchInput,
 		ec.unmarshalInputPageInput,
+		ec.unmarshalInputProductSearchInput,
 		ec.unmarshalInputSortInput,
 	)
 	first := true
@@ -382,7 +552,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "_global_definitions.graphqls" "lens_models.graphqls" "lens_price_history.graphqls" "lenses.graphqls" "products.graphqls"
+//go:embed "_global_definitions.graphqls" "fake.graphqls" "lenses.graphqls" "products.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -395,10 +565,69 @@ func sourceData(filename string) string {
 
 var sources = []*ast.Source{
 	{Name: "_global_definitions.graphqls", Input: sourceData("_global_definitions.graphqls"), BuiltIn: false},
-	{Name: "lens_models.graphqls", Input: sourceData("lens_models.graphqls"), BuiltIn: false},
-	{Name: "lens_price_history.graphqls", Input: sourceData("lens_price_history.graphqls"), BuiltIn: false},
+	{Name: "fake.graphqls", Input: sourceData("fake.graphqls"), BuiltIn: false},
 	{Name: "lenses.graphqls", Input: sourceData("lenses.graphqls"), BuiltIn: false},
 	{Name: "products.graphqls", Input: sourceData("products.graphqls"), BuiltIn: false},
+	{Name: "../../federation/directives.graphql", Input: `
+	directive @authenticated on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+	directive @composeDirective(name: String!) repeatable on SCHEMA
+	directive @extends on OBJECT | INTERFACE
+	directive @external on OBJECT | FIELD_DEFINITION
+	directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+	directive @inaccessible on
+	  | ARGUMENT_DEFINITION
+	  | ENUM
+	  | ENUM_VALUE
+	  | FIELD_DEFINITION
+	  | INPUT_FIELD_DEFINITION
+	  | INPUT_OBJECT
+	  | INTERFACE
+	  | OBJECT
+	  | SCALAR
+	  | UNION
+	directive @interfaceObject on OBJECT
+	directive @link(import: [String!], url: String!) repeatable on SCHEMA
+	directive @override(from: String!, label: String) on FIELD_DEFINITION
+	directive @policy(policies: [[federation__Policy!]!]!) on
+	  | FIELD_DEFINITION
+	  | OBJECT
+	  | INTERFACE
+	  | SCALAR
+	  | ENUM
+	directive @provides(fields: FieldSet!) on FIELD_DEFINITION
+	directive @requires(fields: FieldSet!) on FIELD_DEFINITION
+	directive @requiresScopes(scopes: [[federation__Scope!]!]!) on
+	  | FIELD_DEFINITION
+	  | OBJECT
+	  | INTERFACE
+	  | SCALAR
+	  | ENUM
+	directive @shareable repeatable on FIELD_DEFINITION | OBJECT
+	directive @tag(name: String!) repeatable on
+	  | ARGUMENT_DEFINITION
+	  | ENUM
+	  | ENUM_VALUE
+	  | FIELD_DEFINITION
+	  | INPUT_FIELD_DEFINITION
+	  | INPUT_OBJECT
+	  | INTERFACE
+	  | OBJECT
+	  | SCALAR
+	  | UNION
+	scalar _Any
+	scalar FieldSet
+	scalar federation__Policy
+	scalar federation__Scope
+`, BuiltIn: true},
+	{Name: "../../federation/entity.graphql", Input: `
+type _Service {
+  sdl: String
+}
+
+extend type Query {
+  _service: _Service!
+}
+`, BuiltIn: true},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -442,11 +671,16 @@ func (ec *executionContext) field_Query_products_args(ctx context.Context, rawAr
 		return nil, err
 	}
 	args["pageable"] = arg0
-	arg1, err := ec.field_Query_products_argsType(ctx, rawArgs)
+	arg1, err := ec.field_Query_products_argsTypes(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["type"] = arg1
+	args["types"] = arg1
+	arg2, err := ec.field_Query_products_argsSearch(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["search"] = arg2
 	return args, nil
 }
 func (ec *executionContext) field_Query_products_argsPageable(
@@ -467,21 +701,39 @@ func (ec *executionContext) field_Query_products_argsPageable(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Query_products_argsType(
+func (ec *executionContext) field_Query_products_argsTypes(
 	ctx context.Context,
 	rawArgs map[string]any,
-) (model.ProductType, error) {
-	if _, ok := rawArgs["type"]; !ok {
-		var zeroVal model.ProductType
+) ([]model.ProductType, error) {
+	if _, ok := rawArgs["types"]; !ok {
+		var zeroVal []model.ProductType
 		return zeroVal, nil
 	}
 
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-	if tmp, ok := rawArgs["type"]; ok {
-		return ec.unmarshalNProductType2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductType(ctx, tmp)
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("types"))
+	if tmp, ok := rawArgs["types"]; ok {
+		return ec.unmarshalNProductType2ᚕgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductTypeᚄ(ctx, tmp)
 	}
 
-	var zeroVal model.ProductType
+	var zeroVal []model.ProductType
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_products_argsSearch(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*model.ProductSearchInput, error) {
+	if _, ok := rawArgs["search"]; !ok {
+		var zeroVal *model.ProductSearchInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+	if tmp, ok := rawArgs["search"]; ok {
+		return ec.unmarshalOProductSearchInput2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductSearchInput(ctx, tmp)
+	}
+
+	var zeroVal *model.ProductSearchInput
 	return zeroVal, nil
 }
 
@@ -605,6 +857,399 @@ func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _Fake_id(ctx context.Context, field graphql.CollectedField, obj *model.Fake) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Fake_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Fake_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Fake",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Fake_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Fake) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Fake_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Fake_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Fake",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Fake_createdBy(ctx context.Context, field graphql.CollectedField, obj *model.Fake) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Fake_createdBy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Fake_createdBy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Fake",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Fake_name(ctx context.Context, field graphql.CollectedField, obj *model.Fake) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Fake_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Fake_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Fake",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Fake_description(ctx context.Context, field graphql.CollectedField, obj *model.Fake) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Fake_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Fake_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Fake",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Fake_category(ctx context.Context, field graphql.CollectedField, obj *model.Fake) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Fake_category(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Category, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ProductType)
+	fc.Result = res
+	return ec.marshalNProductType2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Fake_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Fake",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProductType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Fake_actualPrice(ctx context.Context, field graphql.CollectedField, obj *model.Fake) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Fake_actualPrice(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ActualPrice, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNBigDecimal2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Fake_actualPrice(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Fake",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BigDecimal does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Fake_quantity(ctx context.Context, field graphql.CollectedField, obj *model.Fake) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Fake_quantity(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Quantity, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Fake_quantity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Fake",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Fake_salesQuantity(ctx context.Context, field graphql.CollectedField, obj *model.Fake) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Fake_salesQuantity(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SalesQuantity, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Fake_salesQuantity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Fake",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Lens_id(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Lens_id(ctx, field)
 	if err != nil {
@@ -631,9 +1276,9 @@ func (ec *executionContext) _Lens_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Lens_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -643,7 +1288,51 @@ func (ec *executionContext) fieldContext_Lens_id(_ context.Context, field graphq
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Lens_category(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Lens_category(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Category, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ProductType)
+	fc.Result = res
+	return ec.marshalNProductType2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Lens_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Lens",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProductType does not have child fields")
 		},
 	}
 	return fc, nil
@@ -822,8 +1511,8 @@ func (ec *executionContext) fieldContext_Lens_description(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Lens_model(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Lens_model(ctx, field)
+func (ec *executionContext) _Lens_color(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Lens_color(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -836,7 +1525,7 @@ func (ec *executionContext) _Lens_model(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Model, nil
+		return obj.Color, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -848,31 +1537,19 @@ func (ec *executionContext) _Lens_model(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.LensModel)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNLensModel2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐLensModel(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Lens_model(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Lens_color(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Lens",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_LensModel_id(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_LensModel_createdAt(ctx, field)
-			case "createdBy":
-				return ec.fieldContext_LensModel_createdBy(ctx, field)
-			case "name":
-				return ec.fieldContext_LensModel_name(ctx, field)
-			case "isAvailable":
-				return ec.fieldContext_LensModel_isAvailable(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type LensModel", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -948,9 +1625,9 @@ func (ec *executionContext) _Lens_actualPrice(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.LensPriceHistory)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNLensPriceHistory2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐLensPriceHistory(ctx, field.Selections, res)
+	return ec.marshalNBigDecimal2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Lens_actualPrice(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -960,22 +1637,14 @@ func (ec *executionContext) fieldContext_Lens_actualPrice(_ context.Context, fie
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_LensPriceHistory_id(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_LensPriceHistory_createdAt(ctx, field)
-			case "price":
-				return ec.fieldContext_LensPriceHistory_price(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type LensPriceHistory", field.Name)
+			return nil, errors.New("field of type BigDecimal does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Lens_color(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Lens_color(ctx, field)
+func (ec *executionContext) _Lens_minOpticalPower(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Lens_minOpticalPower(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -988,7 +1657,7 @@ func (ec *executionContext) _Lens_color(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Color, nil
+		return obj.MinOpticalPower, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1002,24 +1671,24 @@ func (ec *executionContext) _Lens_color(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNBigDecimal2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Lens_color(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Lens_minOpticalPower(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Lens",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type BigDecimal does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Lens_opticalPower(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Lens_opticalPower(ctx, field)
+func (ec *executionContext) _Lens_maxOpticalPower(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Lens_maxOpticalPower(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1032,7 +1701,7 @@ func (ec *executionContext) _Lens_opticalPower(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OpticalPower, nil
+		return obj.MaxOpticalPower, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1044,19 +1713,107 @@ func (ec *executionContext) _Lens_opticalPower(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNBigDecimal2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Lens_opticalPower(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Lens_maxOpticalPower(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Lens",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
+			return nil, errors.New("field of type BigDecimal does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Lens_opticalPowerStep(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Lens_opticalPowerStep(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OpticalPowerStep, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNBigDecimal2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Lens_opticalPowerStep(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Lens",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BigDecimal does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Lens_hasZeroOpticalPower(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Lens_hasZeroOpticalPower(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HasZeroOpticalPower, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Lens_hasZeroOpticalPower(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Lens",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1088,9 +1845,9 @@ func (ec *executionContext) _Lens_diameter(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNBigDecimal2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Lens_diameter(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1100,7 +1857,7 @@ func (ec *executionContext) fieldContext_Lens_diameter(_ context.Context, field 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
+			return nil, errors.New("field of type BigDecimal does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1132,9 +1889,9 @@ func (ec *executionContext) _Lens_curvatureRadius(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNBigDecimal2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Lens_curvatureRadius(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1144,51 +1901,7 @@ func (ec *executionContext) fieldContext_Lens_curvatureRadius(_ context.Context,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Lens_isAvailable(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Lens_isAvailable(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.IsAvailable, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Lens_isAvailable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Lens",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type BigDecimal does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1238,8 +1951,8 @@ func (ec *executionContext) fieldContext_Lens_quantity(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _LensModel_id(ctx context.Context, field graphql.CollectedField, obj *model.LensModel) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LensModel_id(ctx, field)
+func (ec *executionContext) _Lens_salesQuantity(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Lens_salesQuantity(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1252,7 +1965,7 @@ func (ec *executionContext) _LensModel_id(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
+		return obj.SalesQuantity, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1269,9 +1982,9 @@ func (ec *executionContext) _LensModel_id(ctx context.Context, field graphql.Col
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LensModel_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Lens_salesQuantity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "LensModel",
+		Object:     "Lens",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1282,140 +1995,8 @@ func (ec *executionContext) fieldContext_LensModel_id(_ context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _LensModel_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.LensModel) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LensModel_createdAt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LensModel_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LensModel",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _LensModel_createdBy(ctx context.Context, field graphql.CollectedField, obj *model.LensModel) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LensModel_createdBy(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LensModel_createdBy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LensModel",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Int does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _LensModel_name(ctx context.Context, field graphql.CollectedField, obj *model.LensModel) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LensModel_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_LensModel_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "LensModel",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _LensModel_isAvailable(ctx context.Context, field graphql.CollectedField, obj *model.LensModel) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LensModel_isAvailable(ctx, field)
+func (ec *executionContext) _Lens_isAvailable(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Lens_isAvailable(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1445,9 +2026,9 @@ func (ec *executionContext) _LensModel_isAvailable(ctx context.Context, field gr
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LensModel_isAvailable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Lens_isAvailable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "LensModel",
+		Object:     "Lens",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1458,8 +2039,225 @@ func (ec *executionContext) fieldContext_LensModel_isAvailable(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _LensPriceHistory_id(ctx context.Context, field graphql.CollectedField, obj *model.LensPriceHistory) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LensPriceHistory_id(ctx, field)
+func (ec *executionContext) _Lens_isDeleted(ctx context.Context, field graphql.CollectedField, obj *model.Lens) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Lens_isDeleted(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsDeleted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Lens_isDeleted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Lens",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Product_name(ctx context.Context, field graphql.CollectedField, obj *model.Product) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Product_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Product_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Product",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Product_description(ctx context.Context, field graphql.CollectedField, obj *model.Product) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Product_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Product_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Product",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Product_category(ctx context.Context, field graphql.CollectedField, obj *model.Product) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Product_category(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Category, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ProductType)
+	fc.Result = res
+	return ec.marshalNProductType2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Product_category(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Product",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProductType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Product_actualPrice(ctx context.Context, field graphql.CollectedField, obj *model.Product) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Product_actualPrice(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ActualPrice, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNBigDecimal2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Product_actualPrice(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Product",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BigDecimal does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProductBestSeller_id(ctx context.Context, field graphql.CollectedField, obj *model.ProductBestSeller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProductBestSeller_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1489,9 +2287,9 @@ func (ec *executionContext) _LensPriceHistory_id(ctx context.Context, field grap
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LensPriceHistory_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ProductBestSeller_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "LensPriceHistory",
+		Object:     "ProductBestSeller",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1502,8 +2300,8 @@ func (ec *executionContext) fieldContext_LensPriceHistory_id(_ context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _LensPriceHistory_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.LensPriceHistory) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LensPriceHistory_createdAt(ctx, field)
+func (ec *executionContext) _ProductBestSeller_type(ctx context.Context, field graphql.CollectedField, obj *model.ProductBestSeller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProductBestSeller_type(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1516,7 +2314,7 @@ func (ec *executionContext) _LensPriceHistory_createdAt(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
+		return obj.Type, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1528,26 +2326,111 @@ func (ec *executionContext) _LensPriceHistory_createdAt(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(time.Time)
+	res := resTmp.(model.ProductType)
 	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalNProductType2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LensPriceHistory_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ProductBestSeller_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "LensPriceHistory",
+		Object:     "ProductBestSeller",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
+			return nil, errors.New("field of type ProductType does not have child fields")
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _LensPriceHistory_price(ctx context.Context, field graphql.CollectedField, obj *model.LensPriceHistory) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_LensPriceHistory_price(ctx, field)
+func (ec *executionContext) _ProductBestSeller_name(ctx context.Context, field graphql.CollectedField, obj *model.ProductBestSeller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProductBestSeller_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProductBestSeller_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProductBestSeller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProductBestSeller_description(ctx context.Context, field graphql.CollectedField, obj *model.ProductBestSeller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProductBestSeller_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProductBestSeller_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProductBestSeller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProductBestSeller_price(ctx context.Context, field graphql.CollectedField, obj *model.ProductBestSeller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProductBestSeller_price(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1572,19 +2455,107 @@ func (ec *executionContext) _LensPriceHistory_price(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNBigDecimal2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_LensPriceHistory_price(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ProductBestSeller_price(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "LensPriceHistory",
+		Object:     "ProductBestSeller",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Float does not have child fields")
+			return nil, errors.New("field of type BigDecimal does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProductBestSeller_quantity(ctx context.Context, field graphql.CollectedField, obj *model.ProductBestSeller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProductBestSeller_quantity(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Quantity, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProductBestSeller_quantity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProductBestSeller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProductBestSeller_salesQuantity(ctx context.Context, field graphql.CollectedField, obj *model.ProductBestSeller) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProductBestSeller_salesQuantity(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SalesQuantity, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProductBestSeller_salesQuantity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProductBestSeller",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1616,9 +2587,9 @@ func (ec *executionContext) _ProductPage_content(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.ProductInterface)
+	res := resTmp.([]model.ProductUnion)
 	fc.Result = res
-	return ec.marshalNProductInterface2ᚕgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductInterfaceᚄ(ctx, field.Selections, res)
+	return ec.marshalNProductUnion2ᚕgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductUnionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ProductPage_content(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1628,7 +2599,7 @@ func (ec *executionContext) fieldContext_ProductPage_content(_ context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("FieldContext.Child cannot be called on type INTERFACE")
+			return nil, errors.New("field of type ProductUnion does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1692,7 +2663,7 @@ func (ec *executionContext) _Query_products(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Products(rctx, fc.Args["pageable"].(model.PageInput), fc.Args["type"].(model.ProductType))
+		return ec.resolvers.Query().Products(rctx, fc.Args["pageable"].(model.PageInput), fc.Args["types"].([]model.ProductType), fc.Args["search"].(*model.ProductSearchInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1735,6 +2706,114 @@ func (ec *executionContext) fieldContext_Query_products(ctx context.Context, fie
 	if fc.Args, err = ec.field_Query_products_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_productBestSellers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_productBestSellers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ProductBestSellers(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ProductBestSeller)
+	fc.Result = res
+	return ec.marshalNProductBestSeller2ᚕᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductBestSellerᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_productBestSellers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProductBestSeller_id(ctx, field)
+			case "type":
+				return ec.fieldContext_ProductBestSeller_type(ctx, field)
+			case "name":
+				return ec.fieldContext_ProductBestSeller_name(ctx, field)
+			case "description":
+				return ec.fieldContext_ProductBestSeller_description(ctx, field)
+			case "price":
+				return ec.fieldContext_ProductBestSeller_price(ctx, field)
+			case "quantity":
+				return ec.fieldContext_ProductBestSeller_quantity(ctx, field)
+			case "salesQuantity":
+				return ec.fieldContext_ProductBestSeller_salesQuantity(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProductBestSeller", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query__service(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query__service(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.__resolve__service(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(fedruntime.Service)
+	fc.Result = res
+	return ec.marshalN_Service2githubᚗcomᚋ99designsᚋgqlgenᚋpluginᚋfederationᚋfedruntimeᚐService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query__service(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "sdl":
+				return ec.fieldContext__Service_sdl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type _Service", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -1865,6 +2944,47 @@ func (ec *executionContext) fieldContext_Query___schema(_ context.Context, field
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) __Service_sdl(ctx context.Context, field graphql.CollectedField, obj *fedruntime.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext__Service_sdl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SDL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext__Service_sdl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "_Service",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3821,6 +4941,82 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputLensSearchInput(ctx context.Context, obj any) (model.LensSearchInput, error) {
+	var it model.LensSearchInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"color", "opticalPower", "hasZeroOpticalPower", "brand", "diameter", "curvatureRadius", "isDeleted", "isAvailable"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "color":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("color"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Color = data
+		case "opticalPower":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("opticalPower"))
+			data, err := ec.unmarshalOBigDecimal2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OpticalPower = data
+		case "hasZeroOpticalPower":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasZeroOpticalPower"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasZeroOpticalPower = data
+		case "brand":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("brand"))
+			data, err := ec.unmarshalNString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Brand = data
+		case "diameter":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("diameter"))
+			data, err := ec.unmarshalOBigDecimal2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Diameter = data
+		case "curvatureRadius":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("curvatureRadius"))
+			data, err := ec.unmarshalOBigDecimal2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CurvatureRadius = data
+		case "isDeleted":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isDeleted"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsDeleted = data
+		case "isAvailable":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isAvailable"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsAvailable = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPageInput(ctx context.Context, obj any) (model.PageInput, error) {
 	var it model.PageInput
 	asMap := map[string]any{}
@@ -3866,6 +5062,75 @@ func (ec *executionContext) unmarshalInputPageInput(ctx context.Context, obj any
 				return it, err
 			}
 			it.Sort = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputProductSearchInput(ctx context.Context, obj any) (model.ProductSearchInput, error) {
+	var it model.ProductSearchInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "priceFrom", "priceTo", "quantity", "isDeleted", "isAvailable", "lensFilters"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "priceFrom":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priceFrom"))
+			data, err := ec.unmarshalOBigDecimal2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PriceFrom = data
+		case "priceTo":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priceTo"))
+			data, err := ec.unmarshalOBigDecimal2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PriceTo = data
+		case "quantity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("quantity"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Quantity = data
+		case "isDeleted":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isDeleted"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsDeleted = data
+		case "isAvailable":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isAvailable"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsAvailable = data
+		case "lensFilters":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lensFilters"))
+			data, err := ec.unmarshalOLensSearchInput2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐLensSearchInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LensFilters = data
 		}
 	}
 
@@ -3918,6 +5183,13 @@ func (ec *executionContext) _ProductInterface(ctx context.Context, sel ast.Selec
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
+	case model.Fake:
+		return ec._Fake(ctx, sel, &obj)
+	case *model.Fake:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Fake(ctx, sel, obj)
 	case model.Lens:
 		return ec._Lens(ctx, sel, &obj)
 	case *model.Lens:
@@ -3930,11 +5202,110 @@ func (ec *executionContext) _ProductInterface(ctx context.Context, sel ast.Selec
 	}
 }
 
+func (ec *executionContext) _ProductUnion(ctx context.Context, sel ast.SelectionSet, obj model.ProductUnion) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case model.Lens:
+		return ec._Lens(ctx, sel, &obj)
+	case *model.Lens:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Lens(ctx, sel, obj)
+	case model.Fake:
+		return ec._Fake(ctx, sel, &obj)
+	case *model.Fake:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Fake(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
 
-var lensImplementors = []string{"Lens", "ProductInterface"}
+var fakeImplementors = []string{"Fake", "ProductInterface", "ProductUnion"}
+
+func (ec *executionContext) _Fake(ctx context.Context, sel ast.SelectionSet, obj *model.Fake) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fakeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Fake")
+		case "id":
+			out.Values[i] = ec._Fake_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._Fake_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdBy":
+			out.Values[i] = ec._Fake_createdBy(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Fake_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._Fake_description(ctx, field, obj)
+		case "category":
+			out.Values[i] = ec._Fake_category(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "actualPrice":
+			out.Values[i] = ec._Fake_actualPrice(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "quantity":
+			out.Values[i] = ec._Fake_quantity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "salesQuantity":
+			out.Values[i] = ec._Fake_salesQuantity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var lensImplementors = []string{"Lens", "ProductInterface", "ProductUnion"}
 
 func (ec *executionContext) _Lens(ctx context.Context, sel ast.SelectionSet, obj *model.Lens) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, lensImplementors)
@@ -3947,6 +5318,11 @@ func (ec *executionContext) _Lens(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = graphql.MarshalString("Lens")
 		case "id":
 			out.Values[i] = ec._Lens_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "category":
+			out.Values[i] = ec._Lens_category(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -3967,8 +5343,8 @@ func (ec *executionContext) _Lens(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "description":
 			out.Values[i] = ec._Lens_description(ctx, field, obj)
-		case "model":
-			out.Values[i] = ec._Lens_model(ctx, field, obj)
+		case "color":
+			out.Values[i] = ec._Lens_color(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -3982,13 +5358,23 @@ func (ec *executionContext) _Lens(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "color":
-			out.Values[i] = ec._Lens_color(ctx, field, obj)
+		case "minOpticalPower":
+			out.Values[i] = ec._Lens_minOpticalPower(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "opticalPower":
-			out.Values[i] = ec._Lens_opticalPower(ctx, field, obj)
+		case "maxOpticalPower":
+			out.Values[i] = ec._Lens_maxOpticalPower(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "opticalPowerStep":
+			out.Values[i] = ec._Lens_opticalPowerStep(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "hasZeroOpticalPower":
+			out.Values[i] = ec._Lens_hasZeroOpticalPower(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -4002,72 +5388,23 @@ func (ec *executionContext) _Lens(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "isAvailable":
-			out.Values[i] = ec._Lens_isAvailable(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "quantity":
 			out.Values[i] = ec._Lens_quantity(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var lensModelImplementors = []string{"LensModel"}
-
-func (ec *executionContext) _LensModel(ctx context.Context, sel ast.SelectionSet, obj *model.LensModel) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, lensModelImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("LensModel")
-		case "id":
-			out.Values[i] = ec._LensModel_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "createdAt":
-			out.Values[i] = ec._LensModel_createdAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "createdBy":
-			out.Values[i] = ec._LensModel_createdBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "name":
-			out.Values[i] = ec._LensModel_name(ctx, field, obj)
+		case "salesQuantity":
+			out.Values[i] = ec._Lens_salesQuantity(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "isAvailable":
-			out.Values[i] = ec._LensModel_isAvailable(ctx, field, obj)
+			out.Values[i] = ec._Lens_isAvailable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "isDeleted":
+			out.Values[i] = ec._Lens_isDeleted(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -4094,29 +5431,97 @@ func (ec *executionContext) _LensModel(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
-var lensPriceHistoryImplementors = []string{"LensPriceHistory"}
+var productImplementors = []string{"Product"}
 
-func (ec *executionContext) _LensPriceHistory(ctx context.Context, sel ast.SelectionSet, obj *model.LensPriceHistory) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, lensPriceHistoryImplementors)
+func (ec *executionContext) _Product(ctx context.Context, sel ast.SelectionSet, obj *model.Product) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, productImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("LensPriceHistory")
+			out.Values[i] = graphql.MarshalString("Product")
+		case "name":
+			out.Values[i] = ec._Product_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._Product_description(ctx, field, obj)
+		case "category":
+			out.Values[i] = ec._Product_category(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "actualPrice":
+			out.Values[i] = ec._Product_actualPrice(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var productBestSellerImplementors = []string{"ProductBestSeller"}
+
+func (ec *executionContext) _ProductBestSeller(ctx context.Context, sel ast.SelectionSet, obj *model.ProductBestSeller) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, productBestSellerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProductBestSeller")
 		case "id":
-			out.Values[i] = ec._LensPriceHistory_id(ctx, field, obj)
+			out.Values[i] = ec._ProductBestSeller_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "createdAt":
-			out.Values[i] = ec._LensPriceHistory_createdAt(ctx, field, obj)
+		case "type":
+			out.Values[i] = ec._ProductBestSeller_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "name":
+			out.Values[i] = ec._ProductBestSeller_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "description":
+			out.Values[i] = ec._ProductBestSeller_description(ctx, field, obj)
 		case "price":
-			out.Values[i] = ec._LensPriceHistory_price(ctx, field, obj)
+			out.Values[i] = ec._ProductBestSeller_price(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "quantity":
+			out.Values[i] = ec._ProductBestSeller_quantity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "salesQuantity":
+			out.Values[i] = ec._ProductBestSeller_salesQuantity(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -4228,6 +5633,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "productBestSellers":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_productBestSellers(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "_service":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query__service(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -4236,6 +5685,42 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var _ServiceImplementors = []string{"_Service"}
+
+func (ec *executionContext) __Service(ctx context.Context, sel ast.SelectionSet, obj *fedruntime.Service) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, _ServiceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("_Service")
+		case "sdl":
+			out.Values[i] = ec.__Service_sdl(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4594,6 +6079,21 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNBigDecimal2string(ctx context.Context, v any) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBigDecimal2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4609,19 +6109,19 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v any) (float64, error) {
-	res, err := graphql.UnmarshalFloatContext(ctx, v)
+func (ec *executionContext) unmarshalNFieldSet2string(ctx context.Context, v any) (string, error) {
+	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
-	res := graphql.MarshalFloatContext(v)
+func (ec *executionContext) marshalNFieldSet2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 	}
-	return graphql.WrapContextMarshaler(ctx, res)
+	return res
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v any) (int, error) {
@@ -4639,42 +6139,12 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNLensModel2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐLensModel(ctx context.Context, sel ast.SelectionSet, v *model.LensModel) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._LensModel(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNLensPriceHistory2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐLensPriceHistory(ctx context.Context, sel ast.SelectionSet, v *model.LensPriceHistory) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._LensPriceHistory(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNPageInput2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐPageInput(ctx context.Context, v any) (model.PageInput, error) {
 	res, err := ec.unmarshalInputPageInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNProductInterface2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductInterface(ctx context.Context, sel ast.SelectionSet, v model.ProductInterface) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ProductInterface(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNProductInterface2ᚕgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductInterfaceᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProductInterface) graphql.Marshaler {
+func (ec *executionContext) marshalNProductBestSeller2ᚕᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductBestSellerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ProductBestSeller) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4698,7 +6168,7 @@ func (ec *executionContext) marshalNProductInterface2ᚕgithubᚗcomᚋdkhvanᚑ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNProductInterface2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductInterface(ctx, sel, v[i])
+			ret[i] = ec.marshalNProductBestSeller2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductBestSeller(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4716,6 +6186,16 @@ func (ec *executionContext) marshalNProductInterface2ᚕgithubᚗcomᚋdkhvanᚑ
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNProductBestSeller2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductBestSeller(ctx context.Context, sel ast.SelectionSet, v *model.ProductBestSeller) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ProductBestSeller(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNProductPage2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductPage(ctx context.Context, sel ast.SelectionSet, v model.ProductPage) graphql.Marshaler {
@@ -4740,6 +6220,121 @@ func (ec *executionContext) unmarshalNProductType2githubᚗcomᚋdkhvanᚑdevᚋ
 
 func (ec *executionContext) marshalNProductType2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductType(ctx context.Context, sel ast.SelectionSet, v model.ProductType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNProductType2ᚕgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductTypeᚄ(ctx context.Context, v any) ([]model.ProductType, error) {
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]model.ProductType, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNProductType2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductType(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNProductType2ᚕgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProductType) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProductType2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNProductUnion2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductUnion(ctx context.Context, sel ast.SelectionSet, v model.ProductUnion) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ProductUnion(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNProductUnion2ᚕgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductUnionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.ProductUnion) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProductUnion2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductUnion(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNSortDirection2githubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐSortDirection(ctx context.Context, v any) (model.SortDirection, error) {
@@ -4772,6 +6367,32 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNString2ᚕᚖstring(ctx context.Context, v any) ([]*string, error) {
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2ᚖstring(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -4785,6 +6406,10 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalN_Service2githubᚗcomᚋ99designsᚋgqlgenᚋpluginᚋfederationᚋfedruntimeᚐService(ctx context.Context, sel ast.SelectionSet, v fedruntime.Service) graphql.Marshaler {
+	return ec.__Service(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -5040,6 +6665,180 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) unmarshalNfederation__Policy2string(ctx context.Context, v any) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNfederation__Policy2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNfederation__Policy2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNfederation__Policy2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNfederation__Policy2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNfederation__Policy2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNfederation__Policy2ᚕᚕstringᚄ(ctx context.Context, v any) ([][]string, error) {
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([][]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNfederation__Policy2ᚕstringᚄ(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNfederation__Policy2ᚕᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v [][]string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNfederation__Policy2ᚕstringᚄ(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNfederation__Scope2string(ctx context.Context, v any) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNfederation__Scope2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNfederation__Scope2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNfederation__Scope2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNfederation__Scope2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNfederation__Scope2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNfederation__Scope2ᚕᚕstringᚄ(ctx context.Context, v any) ([][]string, error) {
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([][]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNfederation__Scope2ᚕstringᚄ(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNfederation__Scope2ᚕᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v [][]string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNfederation__Scope2ᚕstringᚄ(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOBigDecimal2ᚖstring(ctx context.Context, v any) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalString(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBigDecimal2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalString(*v)
+	return res
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5066,6 +6865,38 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v any) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalInt(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOLensSearchInput2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐLensSearchInput(ctx context.Context, v any) (*model.LensSearchInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputLensSearchInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOProductSearchInput2ᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐProductSearchInput(ctx context.Context, v any) (*model.ProductSearchInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputProductSearchInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOSortInput2ᚕᚖgithubᚗcomᚋdkhvanᚑdevᚋproductᚑserviceᚋsrcᚋgraphᚋmodelᚐSortInputᚄ(ctx context.Context, v any) ([]*model.SortInput, error) {
 	if v == nil {
 		return nil, nil
@@ -5084,6 +6915,54 @@ func (ec *executionContext) unmarshalOSortInput2ᚕᚖgithubᚗcomᚋdkhvanᚑde
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOString2string(ctx context.Context, v any) (string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {

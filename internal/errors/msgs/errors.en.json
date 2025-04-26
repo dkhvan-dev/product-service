@@ -3,6 +3,8 @@
   "INVALID_PAGINATION_PARAMETERS": "Invalid pagination parameters",
   "LENS_MODEL_NOT_FOUND": "Lens model not found",
   "LENS_MODEL_ALREADY_EXISTS": "Lens model already exists",
+  "LENS_ALREADY_EXISTS": "Lens already exists",
   "LENS_NOT_FOUND": "Lens not found",
-  "PRODUCT_MISSING_TYPE": "Product type is missing"
+  "PRODUCT_MISSING_TYPE": "Product type is missing",
+  "VALIDATION_ERROR": "Field value not found in CMS"
 }

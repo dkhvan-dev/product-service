@@ -1,18 +1,19 @@
 type Query {
-    products(pageable: PageInput!, type: ProductType!): ProductPage!
+    products(pageable: PageInput!, types: [ProductType!]!, search: ProductSearchInput): ProductPage!
+    productBestSellers: [ProductBestSeller!]!
 }
 
 # ====================================================
 # =                      TYPES                       =
 # ====================================================
 type ProductPage {
-    content: [ProductInterface!]!
+    content: [ProductUnion!]!
     totalElements: Int!
 }
 
 interface ProductInterface {
     "Идентификатор"
-    id: Int!
+    id: String!
 
     "Дата создания товара"
     createdAt: Time!
@@ -23,11 +24,89 @@ interface ProductInterface {
     "Название товара"
     name: String!
 
+    "Категория товара"
+    category: ProductType!
+
     "Описание товара"
     description: String
+
+    "Актуальная цена"
+    actualPrice: BigDecimal!
+
 }
 
+union ProductUnion = Lens | Fake
+
+type Product {
+    "Название товара"
+    name: String!
+
+    "Описание товара"
+    description: String
+
+    "Тип товара (категория)"
+    category: ProductType!
+
+    "Цена"
+    actualPrice: BigDecimal!
+}
+
+type ProductBestSeller {
+    "Идентификатор"
+    id: Int!
+
+    "Тип товара (категория)"
+    type: ProductType!
+
+    "Название товара"
+    name: String!
+
+    "Описание товара"
+    description: String
+
+    "Цена"
+    price: BigDecimal!
+
+    "Доступное количество"
+    quantity: Int!
+
+    "Количество продаж"
+    salesQuantity: Int!
+}
+
+# ====================================================
+# =                      ENUMS                       =
+# ====================================================
 enum ProductType {
     "Линзы"
     LENSES
+
+    "ФЕЙК"
+    FAKE
+}
+
+# ====================================================
+# =                      INPUTS                      =
+# ====================================================
+input ProductSearchInput {
+    "Наименование товара"
+    name: String
+
+    "Начало ценового диапазона"
+    priceFrom: BigDecimal
+
+    "Конец ценового диапазона"
+    priceTo: BigDecimal
+
+    "Доступное количество"
+    quantity: Int
+
+    "Удален товар?"
+    isDeleted: Boolean
+
+    "Доступен товар?"
+    isAvailable: Boolean
+
+    "Фильтры линз"
+    lensFilters: LensSearchInput
 }

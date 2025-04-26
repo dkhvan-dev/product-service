@@ -4,7 +4,10 @@
 "Линзы"
 type Lens implements ProductInterface {
     "Идентификатор пар линз"
-    id: Int!
+    id: String!
+
+    "Категория товара"
+    category: ProductType!
 
     "Дата создания линз"
     createdAt: Time!
@@ -18,30 +21,71 @@ type Lens implements ProductInterface {
     "Описание линз"
     description: String
 
-    "Модель линз"
-    model: LensModel!
+    "Цвет линз"
+    color: String!
 
     "Бренд линз"
     brand: String!
 
     "Актуальная цена линз"
-    actualPrice: LensPriceHistory!
+    actualPrice: BigDecimal!
 
-    "Цвет линз"
-    color: String!
+    "Минимальная оптическая сила"
+    minOpticalPower: BigDecimal!
 
-    "Оптическая сила линз"
-    opticalPower: Float!
+    "Минимальная оптическая сила"
+    maxOpticalPower: BigDecimal!
+
+    "Шаг оптической силы"
+    opticalPowerStep: BigDecimal!
+
+    "Имеются нулевки?"
+    hasZeroOpticalPower: Boolean!
 
     "Диаметр линз"
-    diameter: Float!
+    diameter: BigDecimal!
 
     "Радиус кривизны линз"
-    curvatureRadius: Float!
+    curvatureRadius: BigDecimal!
+
+    "Доступное количество пар линз"
+    quantity: Int!
+
+    "Количество продаж"
+    salesQuantity: Int!
 
     "Доступны линзы?"
     isAvailable: Boolean!
 
-    "Доступное количество пар линз"
-    quantity: Int!
+    "Удалена линза?"
+    isDeleted: Boolean!
+}
+
+# ====================================================
+# =                      INPUTS                      =
+# ====================================================
+input LensSearchInput {
+    "Цвет линз"
+    color: [String!]
+
+    "Оптическая сила"
+    opticalPower: BigDecimal
+
+    "Имеются нулевки?"
+    hasZeroOpticalPower: Boolean
+
+    "Бренд линз"
+    brand: [String]!
+
+    "Диаметр линз"
+    diameter: BigDecimal
+
+    "Радиус кривизны линз"
+    curvatureRadius: BigDecimal
+
+    "Линза удалена?"
+    isDeleted: Boolean
+
+    "Доступна линза?"
+    isAvailable: Boolean
 }

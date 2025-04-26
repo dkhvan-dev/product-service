@@ -1,0 +1,32 @@
+# ====================================================
+# =                      TYPES                       =
+# ====================================================
+"Линзы"
+type Fake implements ProductInterface {
+    "Идентификатор пар линз"
+    id: String!
+
+    "Дата создания товара"
+    createdAt: Time!
+
+    "Автор добавления товара"
+    createdBy: Int!
+
+    "Название товара"
+    name: String!
+
+    "Описание товара"
+    description: String
+
+    "Категория товара"
+    category: ProductType!
+
+    "Актуальная цена"
+    actualPrice: BigDecimal!
+
+    "Доустпное количество"
+    quantity: Int!
+
+    "Количество продаж фейк"
+    salesQuantity: Int!
+}

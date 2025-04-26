@@ -1,28 +1,35 @@
 package prices
 
 import (
+	"github.com/dkhvan-dev/product-service/internal/database"
 	"github.com/dkhvan-dev/web-commons/config"
 	"github.com/dkhvan-dev/web-commons/errors"
-	"github.com/jmoiron/sqlx"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"net/http"
 )
 
-func CreateActualPrice(tx *sqlx.Tx, price float64, lensId int) (*int, *errors.CustomError) {
-	query := `
-			insert into lenses_price_history(price, lens_id) 
-			values ($1, $2)
-			returning id
-		`
+func Create(sc mongo.SessionContext, price primitive.Decimal128, lensId primitive.ObjectID) *errors.CustomError {
+	newPrice := New()
+	newPrice.Price = price
+	newPrice.LensId = lensId
 
-	var actualPriceId int
-	err := tx.QueryRowx(query, price, lensId).Scan(&actualPriceId)
-	config.QueryLogger(query)
-
-	if err != nil {
-		config.Logger.Error("Failed create actual lens price", zap.String("db", err.Error()))
-		return nil, errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+	if _, err := database.DB.Collection("lenses_price_history").InsertOne(sc, newPrice); err != nil {
+		return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
 	}
 
-	return &actualPriceId, nil
+	return nil
+}
+
+func DeleteByLensId(sc mongo.SessionContext, lensId primitive.ObjectID) *errors.CustomError {
+	collection := database.DB.Collection("lenses_price_history")
+
+	if _, err := collection.DeleteMany(sc, bson.M{"lensId": lensId}); err != nil {
+		config.Logger.Error("Failed to delete lens price history", zap.Any("lensId", lensId), zap.Error(err))
+		return errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+	}
+
+	return nil
 }

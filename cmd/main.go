@@ -19,9 +19,18 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
+	loc, err := time.LoadLocation("Asia/Almaty")
+	if err != nil {
+		config.Logger.Fatal("Failed to load location Asia/Almaty", zap.Error(err))
+		errors.HandleInternalError(errors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil))
+	}
+
+	time.Local = loc
+
 	var cfg appConfig.AppConfig
 	if err := env.Parse(&cfg); err != nil {
 		config.Logger.Fatal("Failed parsing env variables to config struct: %v", zap.Error(err))
@@ -48,7 +57,7 @@ func main() {
 		errors.HandleInternalError(err)
 	}
 
-	if err := database.InitDB(cfg); err != nil {
+	if err := database.InitMongoDB(cfg); err != nil {
 		errors.HandleInternalError(err)
 	}
 

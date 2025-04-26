@@ -5,11 +5,11 @@ import (
 	"github.com/dkhvan-dev/product-service/internal/products"
 	"github.com/dkhvan-dev/web-commons/errors"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	"strconv"
 )
 
-func (a *API) CreateProductHandler(ctx *gin.Context) {
+func (a *API) UpsertProductHandler(ctx *gin.Context) {
 	var request products.ProductUpsert
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -17,51 +17,18 @@ func (a *API) CreateProductHandler(ctx *gin.Context) {
 		return
 	}
 
-	if request.Type == "" {
+	if request.Category == "" {
 		ctx.Set("error", errors.BadRequestError("PRODUCT_MISSING_TYPE", ctx))
 		return
 	}
 
-	productStore, factoryErr := factory.ProductStoreFactory.Get(request.Type)
+	productStore, factoryErr := factory.ProductStoreFactory.Get(request.Category)
 	if factoryErr != nil {
 		ctx.Set("error", factoryErr)
 		return
 	}
 
-	if err := productStore.Create(request.Input); err != nil {
-		ctx.Set("error", err)
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{})
-}
-
-func (a *API) UpdateProductHandler(ctx *gin.Context) {
-	var request products.ProductUpsert
-
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		ctx.Set("error", errors.NewCustomError("INTERNAL", http.StatusInternalServerError, ctx))
-		return
-	}
-
-	if request.Type == "" {
-		ctx.Set("error", errors.BadRequestError("PRODUCT_MISSING_TYPE", ctx))
-		return
-	}
-
-	productStore, factoryErr := factory.ProductStoreFactory.Get(request.Type)
-	if factoryErr != nil {
-		ctx.Set("error", factoryErr)
-		return
-	}
-
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		ctx.Set("error", errors.BadRequestError("INVALID_PARAM_TYPE", ctx))
-		return
-	}
-
-	if err := productStore.Update(id, request.Input); err != nil {
+	if err := productStore.(products.ProductService).Upsert(request.Input); err != nil {
 		ctx.Set("error", err)
 		return
 	}
@@ -70,26 +37,26 @@ func (a *API) UpdateProductHandler(ctx *gin.Context) {
 }
 
 func (a *API) DeleteProductHandler(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+	id, err := primitive.ObjectIDFromHex(ctx.Param("id"))
 	if err != nil {
 		ctx.Set("error", err)
 		return
 	}
 
-	productType := ctx.Query("productType")
+	productCategory := ctx.Query("productCategory")
 
-	if productType == "" {
+	if productCategory == "" {
 		ctx.Set("error", errors.BadRequestError("PRODUCT_MISSING_TYPE", ctx))
 		return
 	}
 
-	productStore, factoryErr := factory.ProductStoreFactory.Get(productType)
+	productStore, factoryErr := factory.ProductStoreFactory.Get(productCategory)
 	if factoryErr != nil {
 		ctx.Set("error", factoryErr)
 		return
 	}
 
-	if deleteErr := productStore.Delete(id); deleteErr != nil {
+	if deleteErr := productStore.(products.ProductService).Delete(id); deleteErr != nil {
 		ctx.Set("error", deleteErr)
 		return
 	}
