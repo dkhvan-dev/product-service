@@ -2,87 +2,91 @@ package database
 
 import (
 	"context"
-	"database/sql"
+	"errors"
 	appConfig "github.com/dkhvan-dev/product-service/internal/config"
 	"github.com/dkhvan-dev/web-commons/config"
 	customErrors "github.com/dkhvan-dev/web-commons/errors"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
-	"github.com/pressly/goose"
+	"go.mongodb.org/mongo-driver/event"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
-var DB *sqlx.DB
+var DB *mongo.Database
 
-func InitDB(cfg appConfig.AppConfig) error {
-	db, err := sqlx.Open("postgres", cfg.ComputeDBUrl())
+func InitMongoDB(cfg appConfig.AppConfig) error {
+	monitor := &event.CommandMonitor{
+		Started: func(_ context.Context, e *event.CommandStartedEvent) {
+			config.Logger.Info(e.Command.String())
+		},
+		Succeeded: func(_ context.Context, e *event.CommandSucceededEvent) {
+			config.Logger.Info(e.Reply.String())
+		},
+		Failed: func(_ context.Context, e *event.CommandFailedEvent) {
+			config.Logger.Error(e.Failure)
+		},
+	}
 
+	clientOpts := options.Client().ApplyURI(cfg.MONGO_URI).SetMonitor(monitor)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
 		config.Logger.Error(err.Error())
 		return err
 	}
 
-	if err := db.Ping(); err != nil {
+	if err := client.Ping(ctx, nil); err != nil {
 		config.Logger.Error(err.Error())
 		return err
 	}
 
-	DB = db
-	migrationsPath := "internal/migrations"
-
-	if err := goose.Up(DB.DB, migrationsPath); err != nil {
-		config.Logger.Error("Failed to migrate sql", zap.Error(err))
-		return err
-	}
-
+	DB = client.Database(cfg.MONGO_DATABASE)
 	return nil
 }
 
-func StartTransaction(txFunc func(tx *sqlx.Tx) *customErrors.CustomError) *customErrors.CustomError {
-	tx, err := DB.Beginx()
+func StartMongoTransaction(txFunc func(sc mongo.SessionContext) *customErrors.CustomError) *customErrors.CustomError {
+	client := DB.Client()
+	session, err := client.StartSession()
+
 	if err != nil {
-		config.Logger.Error(err.Error())
+		config.Logger.Error("Failed to start Mongo session", zap.Error(err))
 		return customErrors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
 	}
 
-	var txErr *customErrors.CustomError
-	defer func() {
-		if p := recover(); p != nil {
-			tx.Rollback()
-			panic(p)
-		} else if txErr != nil {
-			tx.Rollback()
-		} else {
-			if commitErr := tx.Commit(); commitErr != nil {
-				config.Logger.Error("Failed to commit transaction", zap.Error(commitErr))
-			}
+	defer session.EndSession(context.Background())
+
+	transactionErr := mongo.WithSession(context.Background(), session, func(sc mongo.SessionContext) error {
+		if err := session.StartTransaction(); err != nil {
+			config.Logger.Error("Failed to start Mongo transaction", zap.Error(err))
+			return customErrors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
 		}
-	}()
 
-	txErr = txFunc(tx)
-	return txErr
-}
+		txErr := txFunc(sc)
+		if txErr != nil {
+			session.AbortTransaction(sc)
+			return txErr
+		}
 
-func StartReadTransaction(txFunc func(tx *sqlx.Tx) *customErrors.CustomError) *customErrors.CustomError {
-	ctx := context.Background()
-	tx, err := DB.BeginTxx(ctx, &sql.TxOptions{ReadOnly: true})
+		if err := session.CommitTransaction(sc); err != nil {
+			config.Logger.Error("Failed to commit Mongo transaction", zap.Error(err))
+			return customErrors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+		}
 
-	if err != nil {
-		config.Logger.Error(err.Error())
-		return customErrors.NewCustomError("INTERNAL", http.StatusInternalServerError, nil)
+		return nil
+	})
+
+	if transactionErr != nil {
+		var customErr *customErrors.CustomError
+		errors.As(transactionErr, &customErr)
+		statusCode := customErr.Code
+		key := customErr.Key
+
+		return customErrors.NewCustomError(key, statusCode, nil)
 	}
 
-	defer func() {
-		if p := recover(); p != nil {
-			tx.Rollback()
-			panic(p)
-		} else if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
-		}
-	}()
-
-	return txFunc(tx)
+	return nil
 }
